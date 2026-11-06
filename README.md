@@ -1,4 +1,4 @@
-# 새내기 오디세이: 나의 학과를 찾아서 (가제)
+# 너의 학과는
 
 > AI로 다시 쓰는 대학생활 해커톤 출품작
 
@@ -33,6 +33,8 @@ Vite · React · TypeScript · Three.js (React Three Fiber, drei) · Rapier · e
 ## 문서
 
 - [plan.md](./plan.md): PRD(Part 1), 단계별 구현 계획, 멀티 에이전트 작업 계획, 테스트 계획, 리스크와 시연 시나리오
+- [trailer.md](./trailer.md): 발표용 60초 트레일러 제작 기획안 (Higgsfield + ElevenLabs)
+- [assets/README.md](./assets/README.md): 주인공 외형 기준 이미지와 광장 레퍼런스 사진
 
 ## 실행 방법
 

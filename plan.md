@@ -1,4 +1,4 @@
-# 새내기 오디세이: 나의 학과를 찾아서 (가제)
+# 너의 학과는
 
 > AI로 다시 쓰는 대학생활 해커톤 · 2026-11-06
 > 문서 구성: Part 1 PRD → Part 2 단계별 구현 계획 → Part 3 멀티 에이전트 작업 계획 → Part 4 테스트 계획 → Part 5 리스크와 컷라인 → Part 6 시연 시나리오
@@ -48,7 +48,7 @@
 ## 1.6 세계관과 스토리
 
 - 무대: 인천대 송도캠퍼스 12호관 앞 광장을 모티브로 한 가상의 광장이다. 붉은 벽돌 지그재그 포장 바닥, 가운데 잔디밭과 소나무, 대각선 산책로, 물결 모양 금속 벤치 조형물, 지하 계단 캐노피, 멀리 보이는 바다와 LNG 탱크를 재현한다.
-- 주인공: 자유전공학부 27학번 새내기. 처음부터 끝까지 **자유전공학부 27학번 과잠**을 입고 다닌다.
+- 주인공: 자유전공학부 27학번 새내기. 처음부터 끝까지 **로열 블루 인천대 과잠**(오른팔 27)을 입고 다닌다. 외형 기준은 `assets/characters/hero/hero-*-v2.png`이다.
 - 동기: "나는 뭘 좋아하지?" 학과 사람들을 만나 과제를 도와주며 답을 찾는다.
 - 결말: 5개 학과 체험을 모두 마치면 주인공이 직접 전공을 고르고, 그 학과 선배가 **새 과잠을 입혀 주는 장면**으로 끝난다.
 
@@ -83,7 +83,7 @@
 - FR-2.2 주인공은 WASD로 걷고 Shift로 달린다. 걷기/달리기/정지 애니메이션이 전환된다.
 - FR-2.3 카메라는 3인칭 뒷모습 시점이며 마우스로 회전한다. 건물과 충돌하면 카메라가 앞으로 당겨진다.
 - FR-2.4 건물, 나무, 조형물, NPC와 물리 충돌한다.
-- FR-2.5 주인공은 자유전공학부 27학번 과잠(남색 몸판 + 흰색 소매, 등판 "INU 자유전공학부 27")을 입고 있다.
+- FR-2.5 주인공 외형은 `assets/characters/hero/hero-front|back|left|right-v2.png`를 따른다: 로열 블루 몸판 + 흰 소매 + 파랑·흰 줄무늬 립(깃·소맷부리·밑단), 흰 스냅 단추, 착용자 기준 **오른팔에만** 파란 "27", 등판 흰 자수 "INCHEON / NATIONAL / UNIVERSITY", 흰 티셔츠, 연청 스트레이트 데님, 흰 스니커즈, 가방 없음. 가슴과 왼팔에는 아무 표시가 없다.
 
 ### FR-3 NPC와 대화
 - FR-3.1 NPC 20명을 광장에 배치한다. 퀘스트 NPC 5명, 대화 NPC 15명이다.
@@ -142,7 +142,7 @@
   1. 카메라가 주인공 정면으로 돌아 들어간다.
   2. 선택한 학과 NPC가 앞으로 나와 "우리 과에 온 걸 환영해!"라고 말한다.
   3. 선배가 과잠을 건네는 동작 → 화면 흰색 플래시.
-  4. 주인공의 과잠이 해당 학과 색상과 등판 문구 "INU {학과명} 27"로 바뀐다.
+  4. 주인공의 과잠이 해당 학과 색상으로 바뀌고, 등판 "INCHEON / NATIONAL / UNIVERSITY" 아래에 학과명 줄(예: "컴퓨터공학부")이 새로 수놓아진다. 오른팔 27은 유지한다.
   5. 카메라가 천천히 주인공 등 뒤로 돌아가 등판 문구를 크게 보여 준다. 꽃가루 파티클과 엔딩 BGM이 재생된다.
   6. 화면 하단 문구: "나의 학과를 찾았다."
 - FR-9.6 크레딧: 학과 상징물(톱니바퀴, 비커, 붓, 각도기 등)이 하나씩 지나가며 팀원 이름과 "Made with Claude Code" 문구를 보여 준다. 마지막에 [처음부터] 버튼.
@@ -263,14 +263,16 @@ ROTC 후보생(구보 중), 대학원생(커피 들고 좀비 걸음), 조교, �
 
 ### 과잠 색상표
 
-| 학과 | 몸판 | 소매 | 등판 문구 |
+모든 과잠은 등판 "INCHEON / NATIONAL / UNIVERSITY"와 오른팔 "27"을 공통으로 갖는다. 학과 과잠은 그 아래에 학과명 줄을 하나 더 갖는다.
+
+| 학과 | 몸판 | 소매 | 등판 4번째 줄 |
 |---|---|---|---|
-| 자유전공학부 (시작) | #1F2A44 남색 | #FFFFFF | INU 자유전공학부 27 |
-| 전자공학부 | #0B6E4F 초록 | #F2C14E | INU 전자공학부 27 |
-| 디자인학부 | #E94F37 주홍 | #FFFFFF | INU 디자인학부 27 |
-| 수학과 | #3B5BA9 파랑 | #F4F4F4 | INU 수학과 27 |
-| 동북아국제통상학부 | #8C1C13 버건디 | #F2D0A4 | INU 동북아국제통상학부 27 |
-| 컴퓨터공학부 | #111111 검정 | #39FF14 | INU 컴퓨터공학부 27 |
+| 자유전공학부 (시작, 에셋 기준) | #1E3FC0 로열 블루 | #FFFFFF | 없음 |
+| 전자공학부 | #0B6E4F 초록 | #F2C14E | 전자공학부 |
+| 디자인학부 | #E94F37 주홍 | #FFFFFF | 디자인학부 |
+| 수학과 | #2B2D6E 남보라 | #F4F4F4 | 수학과 |
+| 동북아국제통상학부 | #8C1C13 버건디 | #F2D0A4 | 동북아국제통상학부 |
+| 컴퓨터공학부 | #111111 검정 | #39FF14 | 컴퓨터공학부 |
 
 ## 1.11 범위 밖 (이번 해커톤에서 하지 않음)
 
@@ -310,6 +312,8 @@ ROTC 후보생(구보 중), 대학원생(커피 들고 좀비 걸음), 조교, �
 
 | 용도 | 출처 | 비고 |
 |---|---|---|
+| 주인공 외형 기준 | `assets/characters/hero/hero-*-v2.png` (팀 제작) | 4방향 참고 이미지. 3D 메시가 아니므로 모델 선택·과잠 텍스처 색과 문구를 이 이미지에 맞춘다 |
+| 광장 레퍼런스 | `assets/references/plaza/plaza-01.jpg`, `plaza-02.jpeg` | 바닥 패턴, 건물 배치, 조형물 확인용 |
 | 주인공/NPC 캐릭터 | Quaternius "Ultimate Animated Character Pack" 또는 KayKit Adventurers | Idle/Walk/Run/Wave 애니메이션 포함 glTF. 몸통 재질이 분리된 모델을 고른다 |
 | 소품 | Kenney (Furniture, Food, Prototype), Poly Pizza | 커피 카트, 벤치, 이젤, 칠판, 서버 랙, 상자 |
 | 나무 | Quaternius "Stylized Nature" | 소나무형 위주, Instances로 배치 |
@@ -409,7 +413,7 @@ export type DepartmentId =
 export interface JacketSpec {
   bodyColor: string;
   sleeveColor: string;
-  backText: string;              // "INU 컴퓨터공학부 27"
+  departmentLine: string | null; // 등판 4번째 줄. 시작 과잠은 null, 예: "컴퓨터공학부"
 }
 
 export interface Department {
@@ -721,7 +725,7 @@ npx playwright test          # E2E (dev 서버 자동 기동, ?debug=1)
 | `eventScheduler` | 시드 고정 시 결과 재현; 간격이 45~90초 범위; 같은 이벤트 연속 금지; explore가 아니면 null |
 | `proximity` | 3m 밖이면 null; 여러 대상 중 가장 가까운 것 반환 |
 | `minimap` | 월드 원점 → 미니맵 중심; 맵 경계 → 원 테두리; heading 회전 적용 |
-| `jacket` | 학과 id로 올바른 JacketSpec 반환; 등판 문구 "INU {학과명} 27" 형식 |
+| `jacket` | 학과 id로 올바른 JacketSpec 반환; 시작 과잠은 departmentLine=null; 학과 과잠은 departmentLine=학과명 |
 | stores | `useSkillStore.grant` 중복 지급 무시; `useNotificationStore` 최대 3개 유지; `usePlayerStore.setJacket` 반영 |
 | data 무결성 | 학과 20개 id 중복 없음; 모든 NPC의 departmentId가 존재; 퀘스트 5개의 npcId·skillId가 존재; obtainable 스킬이 정확히 5개; 모든 NPC barks ≥ 3; 모든 학과에 jacket 스펙 존재; 미니게임 정답이 options/tokens 안에 존재 |
 
@@ -749,7 +753,7 @@ npx playwright test          # E2E (dev 서버 자동 기동, ?debug=1)
 | `decline.spec.ts` | 대화에서 [다음에] 선택 | 미니게임 미표시, 퀘스트 상태 offered, 이동 가능 |
 | `events.spec.ts` | `triggerEvent` 3종 | 알림 문구 표시, 간식 이벤트 후 미니맵 마커 |
 | `stamina.spec.ts` | Shift+W를 9초 유지 | 스태미나 링 감소, 0 도달 시 알림 |
-| `ending.spec.ts` | `grantAllSkills` → ★ 텔레포트 → 컴퓨터공학부 카드 선택 → 결정 | `getState().player.jacket.backText === 'INU 컴퓨터공학부 27'`, "나의 학과를 찾았다" 문구, 크레딧 도달 |
+| `ending.spec.ts` | `grantAllSkills` → ★ 텔레포트 → 컴퓨터공학부 카드 선택 → 결정 | `getState().player.jacket.departmentLine === '컴퓨터공학부'`, "나의 학과를 찾았다" 문구, 크레딧 도달 |
 | `dex.spec.ts` | Tab | 20칸, 획득 칸 수 = 획득 스킬 수 |
 
 ## 4.6 성능·시연 점검 (수동)
