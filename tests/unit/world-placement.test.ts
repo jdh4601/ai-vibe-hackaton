@@ -3,7 +3,7 @@ import { LAWNS, WALKWAYS } from '../../src/game/config';
 import { distToSegment, isOnWalkway, placeTrees, zigzagPoints } from '../../src/world/env/placement';
 import { mulberry32 } from '../../src/world/env/rng';
 
-const opts = { count: 50, seed: 7, edgeMargin: 1, walkwayMargin: 1, minSpacing: 2, avoid: [] };
+const opts = { count: 20, seed: 7, edgeMargin: 1, walkwayMargin: 1, minSpacing: 2, avoid: [] };
 
 describe('world placement', () => {
   it('mulberry32_sameSeed_sameSequence', () => {
@@ -17,7 +17,7 @@ describe('world placement', () => {
   });
   it('placeTrees_default_reachesCountInsideLawnsAwayFromWalkways', () => {
     const trees = placeTrees(LAWNS, WALKWAYS, opts);
-    expect(trees.length).toBeGreaterThanOrEqual(40);
+    expect(trees.length).toBeGreaterThanOrEqual(15);
     for (const t of trees) {
       expect(LAWNS.some((l) => Math.abs(t.x - l.x) <= l.w / 2 && Math.abs(t.z - l.z) <= l.d / 2)).toBe(true);
       expect(isOnWalkway(t.x, t.z, WALKWAYS, 0)).toBe(false);

@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { zigzagPoints } from './placement';
 
-function makeCanvas(size: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
+function makeCanvas(w: number, h = w): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const c = document.createElement('canvas');
-  c.width = c.height = size;
+  c.width = w;
+  c.height = h;
   const ctx = c.getContext('2d');
   if (!ctx) throw new Error('2d context unavailable');
   return [c, ctx];
@@ -18,31 +19,39 @@ function toTexture(c: HTMLCanvasElement, repeatX = 1, repeatY = 1): THREE.Canvas
   return t;
 }
 
-/** Red brick plaza with light-pink zigzag bands. One tile = 8m x 8m. */
+/** Salmon/terracotta brick with wide light zigzag bands and a grid of small dot tiles. One tile = 8m x 8m. */
 export function makeBrickTexture(repeat: number): THREE.CanvasTexture {
-  const size = 512;
+  const size = 1024;
   const [c, ctx] = makeCanvas(size);
-  ctx.fillStyle = '#a9483a';
+  ctx.fillStyle = '#c9705a';
   ctx.fillRect(0, 0, size, size);
-  // brick courses
   const bh = 16;
   const bw = 32;
   for (let r = 0; r * bh < size; r++) {
     for (let col = -1; col * bw < size; col++) {
       const x = col * bw + (r % 2) * (bw / 2);
-      const shade = 150 + ((r * 7 + col * 13) % 5) * 7;
-      ctx.fillStyle = `rgb(${shade + 20},${shade - 100},${shade - 105})`;
+      const v = ((r * 7 + col * 13) % 5) * 4;
+      ctx.fillStyle = `rgb(${205 + v},${118 + v},${96 + v})`;
       ctx.fillRect(x + 1, r * bh + 1, bw - 2, bh - 2);
     }
   }
-  // pink zigzag bands
-  ctx.strokeStyle = '#f3b8c4';
-  ctx.lineWidth = 9;
-  ctx.lineJoin = 'miter';
-  for (const y of [64, 192, 320, 448]) {
+  // wide light chevron bands: thick pale band with a thinner terracotta core
+  const drawBand = (y: number, amp: number, period: number, width: number, color: string) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'miter';
     ctx.beginPath();
-    zigzagPoints(size, y, 20, 64).forEach(([x, py], i) => (i === 0 ? ctx.moveTo(x, py) : ctx.lineTo(x, py)));
+    zigzagPoints(size, y, amp, period).forEach(([x, py], i) => (i === 0 ? ctx.moveTo(x, py) : ctx.lineTo(x, py)));
     ctx.stroke();
+  };
+  for (const y of [170, 680]) {
+    drawBand(y, 55, 256, 78, '#efc8b4');
+    drawBand(y, 55, 256, 30, '#d98b70');
+  }
+  // small dot tiles on a grid
+  ctx.fillStyle = '#f0d9c8';
+  for (let gy = 64; gy < size; gy += 128) {
+    for (let gx = 64; gx < size; gx += 128) ctx.fillRect(gx - 5, gy - 5, 10, 10);
   }
   return toTexture(c, repeat, repeat);
 }
@@ -50,54 +59,62 @@ export function makeBrickTexture(repeat: number): THREE.CanvasTexture {
 export function makeGrassTexture(): THREE.CanvasTexture {
   const size = 256;
   const [c, ctx] = makeCanvas(size);
-  ctx.fillStyle = '#5f9f45';
+  ctx.fillStyle = '#6fb84a';
   ctx.fillRect(0, 0, size, size);
   for (let i = 0; i < 1800; i++) {
-    const g = 110 + ((i * 53) % 70);
-    ctx.fillStyle = `rgba(${60 + (i % 30)},${g},${50 + (i % 20)},0.5)`;
+    const g = 140 + ((i * 53) % 60);
+    ctx.fillStyle = `rgba(${80 + (i % 30)},${g},${55 + (i % 20)},0.45)`;
     ctx.fillRect((i * 97) % size, (i * 61) % size, 2, 3);
   }
   return toTexture(c, 4, 6);
 }
 
-export function makePathTexture(): THREE.CanvasTexture {
-  const size = 128;
-  const [c, ctx] = makeCanvas(size);
-  ctx.fillStyle = '#d9b9a4';
-  ctx.fillRect(0, 0, size, size);
-  ctx.strokeStyle = '#c4a18c';
-  ctx.lineWidth = 2;
-  for (let i = 0; i <= size; i += 32) {
-    ctx.strokeRect(i, 0, 32, size);
-  }
-  return toTexture(c, 1, 1);
+export interface FacadeOptions {
+  wall: string;
+  glass: string;
+  cols: number;
+  rows: number;
+  frame?: string;
+  winW?: number; // window width fraction of a cell (0..1)
+  winH?: number;
+  darkRight?: number; // fraction of width at the right drawn as dark grey glass strips
+  louvers?: boolean;
 }
 
-/** Facade windows grid. `cols`/`rows` windows across one face. */
-export function makeWindowTexture(opts: { wall: string; glass: string; cols: number; rows: number; frame?: string }): THREE.CanvasTexture {
+/** Facade windows grid. */
+export function makeWindowTexture(o: FacadeOptions): THREE.CanvasTexture {
   const w = 512;
   const h = 512;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext('2d');
-  if (!ctx) throw new Error('2d context unavailable');
-  ctx.fillStyle = opts.wall;
+  const [c, ctx] = makeCanvas(w, h);
+  ctx.fillStyle = o.wall;
   ctx.fillRect(0, 0, w, h);
-  const cw = w / opts.cols;
-  const ch = h / opts.rows;
-  for (let r = 0; r < opts.rows; r++) {
-    for (let col = 0; col < opts.cols; col++) {
-      const x = col * cw;
-      const y = r * ch;
-      ctx.fillStyle = opts.frame ?? 'rgba(0,0,0,0.25)';
-      ctx.fillRect(x + cw * 0.15, y + ch * 0.2, cw * 0.7, ch * 0.62);
-      const grad = ctx.createLinearGradient(0, y, 0, y + ch);
-      grad.addColorStop(0, opts.glass);
-      grad.addColorStop(1, '#3d5a73');
+  const cw = w / o.cols;
+  const ch = h / o.rows;
+  const ww = o.winW ?? 0.7;
+  const wh = o.winH ?? 0.62;
+  for (let r = 0; r < o.rows; r++) {
+    for (let col = 0; col < o.cols; col++) {
+      const x = col * cw + (cw * (1 - ww)) / 2;
+      const y = r * ch + ch * 0.2;
+      ctx.fillStyle = o.frame ?? 'rgba(0,0,0,0.3)';
+      ctx.fillRect(x, y, cw * ww, ch * wh);
+      const grad = ctx.createLinearGradient(0, y, 0, y + ch * wh);
+      grad.addColorStop(0, o.glass);
+      grad.addColorStop(1, '#456780');
       ctx.fillStyle = grad;
-      ctx.fillRect(x + cw * 0.19, y + ch * 0.25, cw * 0.62, ch * 0.52);
+      ctx.fillRect(x + 3, y + 3, cw * ww - 6, ch * wh - 6);
     }
+  }
+  if (o.darkRight) {
+    const x0 = w * (1 - o.darkRight);
+    ctx.fillStyle = '#4a4f55';
+    ctx.fillRect(x0, 0, w - x0, h);
+    ctx.fillStyle = '#8fb0a8';
+    for (let x = x0 + 10; x < w - 10; x += 22) ctx.fillRect(x, 0, 12, h);
+  }
+  if (o.louvers) {
+    ctx.fillStyle = 'rgba(30,34,38,0.55)';
+    for (let y = 0; y < h; y += 14) ctx.fillRect(0, y, w, 5);
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
@@ -106,17 +123,31 @@ export function makeWindowTexture(opts: { wall: string; glass: string; cols: num
 }
 
 export function makeNumberTexture(text: string): THREE.CanvasTexture {
-  const c = document.createElement('canvas');
-  c.width = 512;
-  c.height = 512;
-  const ctx = c.getContext('2d');
-  if (!ctx) throw new Error('2d context unavailable');
+  const [c, ctx] = makeCanvas(512);
   ctx.clearRect(0, 0, 512, 512);
   ctx.fillStyle = '#f5f5f0';
   ctx.font = 'bold 380px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, 256, 270);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** Soft white cloud puff sprite. */
+export function makeCloudTexture(): THREE.CanvasTexture {
+  const [c, ctx] = makeCanvas(256, 128);
+  for (let i = 0; i < 14; i++) {
+    const x = 40 + ((i * 53) % 176);
+    const y = 64 + (((i * 37) % 30) - 15);
+    const r = 24 + ((i * 11) % 22);
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(255,255,255,0.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 128);
+  }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
