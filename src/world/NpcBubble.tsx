@@ -46,7 +46,7 @@ function hashIndex(id: string, mod: number): number {
   return h % mod;
 }
 
-export function NpcBubble({ npc, showHint, height = 2.15 }: Props) {
+export function NpcBubble({ npc, showHint, height = 2.05 }: Props) {
   const [index, setIndex] = useState(() => hashIndex(npc.id, Math.max(1, npc.barks.length)));
   const status = useQuestStore((s) => (npc.questId ? s.quests[npc.questId].status : null));
 

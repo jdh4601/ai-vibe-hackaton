@@ -1,22 +1,30 @@
 import { useMemo } from 'react';
 import { MeshStandardMaterial, type CanvasTexture } from 'three';
 import type { JacketSpec } from '../game/types';
-import { drawJacketTexture } from '../logic/jacket';
+import {
+  drawJacketFrontTexture,
+  drawJacketSideTexture,
+  drawJacketTexture,
+  drawSleeveNumberTexture,
+} from '../logic/jacket';
 
 export interface JacketMaterials {
-  back: MeshStandardMaterial; // torso face that carries the printed text
-  body: MeshStandardMaterial; // plain jacket color
-  sleeve: MeshStandardMaterial; // sleeve / stripe color
+  front: MeshStandardMaterial; // open front: shirt strip, snaps, pocket welts
+  back: MeshStandardMaterial; // printed lettering
+  side: MeshStandardMaterial; // body color + hem ribbing
+  body: MeshStandardMaterial; // plain jacket color (collar, shoulders)
+  sleeve: MeshStandardMaterial; // sleeve color
+  sleeveNumber: MeshStandardMaterial; // transparent "27" decal for the right sleeve
 }
 
 // Textures are shared between every character wearing the same jacket (20 NPCs + the player).
 const textureCache = new Map<string, CanvasTexture>();
 
-function textureFor(spec: JacketSpec): CanvasTexture {
-  const key = `${spec.bodyColor}|${spec.sleeveColor}|${spec.backText}`;
+function cached(kind: string, spec: JacketSpec, draw: (s: JacketSpec) => CanvasTexture): CanvasTexture {
+  const key = `${kind}|${spec.bodyColor}|${spec.sleeveColor}|${spec.backText}`;
   let tex = textureCache.get(key);
   if (!tex) {
-    tex = drawJacketTexture(spec);
+    tex = draw(spec);
     textureCache.set(key, tex);
   }
   return tex;
@@ -26,11 +34,21 @@ function textureFor(spec: JacketSpec): CanvasTexture {
 export function useJacketMaterials(spec: JacketSpec): JacketMaterials {
   const { bodyColor, sleeveColor, backText } = spec;
   return useMemo(() => {
-    const map = textureFor({ bodyColor, sleeveColor, backText });
+    const s: JacketSpec = { bodyColor, sleeveColor, backText };
+    const std = (map: CanvasTexture) => new MeshStandardMaterial({ map, roughness: 0.85, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.3 });
     return {
-      back: new MeshStandardMaterial({ map, roughness: 0.8 }),
-      body: new MeshStandardMaterial({ color: bodyColor, roughness: 0.8 }),
-      sleeve: new MeshStandardMaterial({ color: sleeveColor, roughness: 0.8 }),
+      front: std(cached('front', s, (x) => drawJacketFrontTexture(x))),
+      back: std(cached('back', s, drawJacketTexture)),
+      side: std(cached('side', s, drawJacketSideTexture)),
+      body: new MeshStandardMaterial({ color: bodyColor, roughness: 0.85, emissive: bodyColor, emissiveIntensity: 0.3 }),
+      sleeve: new MeshStandardMaterial({ color: sleeveColor, roughness: 0.85, emissive: sleeveColor, emissiveIntensity: 0.3 }),
+      sleeveNumber: new MeshStandardMaterial({
+        map: cached('num', s, drawSleeveNumberTexture),
+        transparent: true,
+        roughness: 0.85,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      }),
     };
   }, [bodyColor, sleeveColor, backText]);
 }

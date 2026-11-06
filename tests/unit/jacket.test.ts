@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEPARTMENTS } from '../../src/data/departments';
-import { jacketBackText, jacketForDepartment, splitBackText } from '../../src/logic/jacket';
+import { backTextLayout, jacketBackText, jacketForDepartment, splitBackText } from '../../src/logic/jacket';
 
 describe('jacket', () => {
   it('jacketBackText_name_formatsInuNameYear', () => {
@@ -27,5 +27,11 @@ describe('jacket', () => {
   });
   it('splitBackText_otherShape_keepsOneLine', () => {
     expect(splitBackText('HELLO')).toEqual(['HELLO']);
+  });
+  it('backTextLayout_heroText_isArched', () => {
+    expect(backTextLayout('INCHEON NATIONAL UNIVERSITY')).toBe('arched');
+  });
+  it('backTextLayout_departmentText_isCentered', () => {
+    expect(backTextLayout('INU 컴퓨터공학부 27')).toBe('centered');
   });
 });

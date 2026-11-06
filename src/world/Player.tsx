@@ -22,8 +22,11 @@ import { Character } from './Character';
 import { cameraRig, playerLive } from './playerLive';
 
 // Distance from the physics body center down to the soles (capsule half height + radius + float height).
-const FOOT_OFFSET = 0.8;
-const PIVOT_HEIGHT = CAMERA_HEIGHT * 0.75; // camera look-at height above the feet
+const CAPSULE_HALF_HEIGHT = 0.5;
+const CAPSULE_RADIUS = 0.3;
+const FLOAT_HEIGHT = 0.2; // ecctrl default
+const FOOT_OFFSET = CAPSULE_HALF_HEIGHT + CAPSULE_RADIUS + FLOAT_HEIGHT;
+const PIVOT_HEIGHT = CAMERA_HEIGHT * 0.9; // camera look-at height above the feet
 const SHOULDER_OFFSET = 0.45; // camera sits over the right shoulder
 const MIN_PITCH = -0.25;
 const MAX_PITCH = 1.1;
@@ -218,9 +221,12 @@ export function Player() {
         maxWalkVel={WALK_SPEED}
         maxRunVel={RUN_SPEED}
         enableToggleRun={false}
+        capsuleHalfHeight={CAPSULE_HALF_HEIGHT}
+        capsuleRadius={CAPSULE_RADIUS}
+        floatHeight={FLOAT_HEIGHT}
       />
       <group ref={visual} position={SPAWN_POINT}>
-        <Character jacket={jacket} moveMode={moveMode} hairColor="#2a1d17" />
+        <Character jacket={jacket} moveMode={moveMode} />
       </group>
     </>
   );

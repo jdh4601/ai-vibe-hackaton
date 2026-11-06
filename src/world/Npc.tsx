@@ -16,6 +16,7 @@ import { playerLive } from './playerLive';
 const ANIMATE_RADIUS = 20; // NPCs farther than this skip their idle animation
 const SKIN = ['#ffd9b8', '#f5c9a0', '#e8b48a', '#c98f65', '#ffe2cc'];
 const HAIR = ['#2a1d17', '#4b3426', '#111111', '#7a4a2a', '#8b8b92', '#b5651d'];
+const PANTS = ['#8aa9d4', '#6d7f9e', '#3c4256', '#b8a98a', '#575b63'];
 const STYLES: HairStyle[] = ['short', 'long', 'bun', 'short'];
 
 function hash(id: string): number {
@@ -41,6 +42,8 @@ function NpcInner({ def }: { def: NpcDef }) {
       style: STYLES[(h >> 8) % STYLES.length]!,
       glasses: (h >> 12) % 3 === 0,
       phase: (h % 1000) / 1000,
+      scale: 0.93 + ((h >> 16) % 12) / 100,
+      pants: PANTS[(h >> 20) % PANTS.length]!,
     };
   }, [def.id]);
   const jacket = useMemo(() => jacketForDepartment(def.departmentId), [def.departmentId]);
@@ -81,7 +84,7 @@ function NpcInner({ def }: { def: NpcDef }) {
     <>
       {!staged && (
         <RigidBody type="fixed" colliders={false} position={[px, py, pz]} rotation={[0, def.rotationY, 0]}>
-          <CapsuleCollider args={[0.35, 0.3]} position={[0, 0.7, 0]} />
+          <CapsuleCollider args={[0.55, 0.3]} position={[0, 0.85, 0]} />
         </RigidBody>
       )}
       <group ref={group} position={[px, py, pz]}>
@@ -93,6 +96,8 @@ function NpcInner({ def }: { def: NpcDef }) {
             hairStyle={look.style}
             glasses={look.glasses}
             phase={look.phase}
+            scale={look.scale}
+            pantsColor={look.pants}
             animateRef={animate}
           />
         </group>
