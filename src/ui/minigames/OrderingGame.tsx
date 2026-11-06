@@ -9,11 +9,13 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { OrderingToken } from '../../game/types';
 import { isCorrectOrder, shuffleNotEqual } from '../../logic/minigames/ordering';
-import type { GameProps } from './gameProps';
+import type { GameProps, SpecOf } from './gameProps';
 import './minigames.css';
+
+type Round = SpecOf<'ordering'>['rounds'][number];
 
 function Chip({ token, mode, index }: { token: OrderingToken; mode: 'word' | 'code'; index: number }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: token.id });
@@ -34,10 +36,17 @@ function Chip({ token, mode, index }: { token: OrderingToken; mode: 'word' | 'co
   );
 }
 
-export function OrderingGame({ spec, onSuccess, onFail }: GameProps<'ordering'>) {
-  const [round, setRound] = useState(0);
-  const [seed] = useState(() => Math.floor(Math.random() * 1_000_000));
-  const [order, setOrder] = useState<string[]>(() => (spec.rounds[0] ? shuffleNotEqual(spec.rounds[0].tokens, spec.rounds[0].answer, seed).map((t) => t.id) : []));
+interface RoundProps {
+  round: Round;
+  mode: 'word' | 'code';
+  seed: number;
+  onSolved: () => void;
+  onFail: () => void;
+}
+
+// One round; the parent keys it by round index so state starts fresh each round.
+function OrderingRound({ round, mode, seed, onSolved, onFail }: RoundProps) {
+  const [order, setOrder] = useState<string[]>(() => shuffleNotEqual(round.tokens, round.answer, seed).map((t) => t.id));
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [shake, setShake] = useState(0);
   const [solved, setSolved] = useState(false);
@@ -46,19 +55,10 @@ export function OrderingGame({ spec, onSuccess, onFail }: GameProps<'ordering'>)
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-  const current = spec.rounds[round];
-  const tokenById = useMemo(() => new Map((current?.tokens ?? []).map((t) => [t.id, t])), [current]);
-
-  useEffect(() => {
-    if (!current) return;
-    setOrder(shuffleNotEqual(current.tokens, current.answer, seed + round * 7919).map((t) => t.id));
-    setMessage(null);
-    setSolved(false);
-  }, [current, seed, round]);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  if (!current) return null;
-  const code = spec.mode === 'code';
+  const code = mode === 'code';
+  const tokenById = new Map(round.tokens.map((t) => [t.id, t]));
 
   const onDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
@@ -69,13 +69,10 @@ export function OrderingGame({ spec, onSuccess, onFail }: GameProps<'ordering'>)
 
   const submit = () => {
     if (solved) return;
-    if (isCorrectOrder(order, current.answer)) {
+    if (isCorrectOrder(order, round.answer)) {
       setSolved(true);
       setMessage({ ok: true, text: '정답!' });
-      timer.current = setTimeout(() => {
-        if (round + 1 >= spec.rounds.length) onSuccess();
-        else setRound(round + 1);
-      }, code ? 1400 : 800);
+      timer.current = setTimeout(onSolved, code ? 1400 : 800);
     } else {
       setMessage({ ok: false, text: '순서가 맞지 않아요. 다시 해 볼까요?' });
       setShake((n) => n + 1);
@@ -84,15 +81,14 @@ export function OrderingGame({ spec, onSuccess, onFail }: GameProps<'ordering'>)
   };
 
   return (
-    <div className="mg-body">
-      {spec.rounds.length > 1 && <div className="fb-round">문제 {round + 1} / {spec.rounds.length}</div>}
-      <div className="od-prompt" data-testid="od-prompt">{current.prompt}</div>
+    <>
+      <div className="od-prompt" data-testid="od-prompt">{round.prompt}</div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={order} strategy={code ? verticalListSortingStrategy : horizontalListSortingStrategy}>
           <div key={shake} className={`od-list${code ? ' code' : ''}${shake ? ' mg-shake' : ''}`} data-testid="od-list">
             {order.map((id, i) => {
               const token = tokenById.get(id);
-              return token ? <Chip key={id} token={token} mode={spec.mode} index={i} /> : null;
+              return token ? <Chip key={id} token={token} mode={mode} index={i} /> : null;
             })}
           </div>
         </SortableContext>
@@ -103,12 +99,32 @@ export function OrderingGame({ spec, onSuccess, onFail }: GameProps<'ordering'>)
           <div><b>200 OK</b></div>
         </div>
       )}
-      <div className="mg-msg" role="status">
+      <div className="mg-msg">
         <span className={message ? (message.ok ? 'ok' : 'bad') : ''}>{message?.text ?? ''}</span>
       </div>
       <div className="mg-row">
         <button type="button" className="mg-btn" onClick={submit} disabled={solved}>제출</button>
       </div>
+    </>
+  );
+}
+
+export function OrderingGame({ spec, onSuccess, onFail }: GameProps<'ordering'>) {
+  const [roundIdx, setRoundIdx] = useState(0);
+  const [seed] = useState(() => Math.floor(Math.random() * 1_000_000));
+  const round = spec.rounds[roundIdx];
+  if (!round) return null;
+  return (
+    <div className="mg-body">
+      {spec.rounds.length > 1 && <div className="fb-round">문제 {roundIdx + 1} / {spec.rounds.length}</div>}
+      <OrderingRound
+        key={roundIdx}
+        round={round}
+        mode={spec.mode}
+        seed={seed + roundIdx * 7919}
+        onFail={onFail}
+        onSolved={() => (roundIdx + 1 >= spec.rounds.length ? onSuccess() : setRoundIdx(roundIdx + 1))}
+      />
     </div>
   );
 }
