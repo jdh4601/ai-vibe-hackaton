@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { LAWNS, MAP_HALF, MAP_SIZE, WALKWAYS } from '../game/config';
-import { makeBrickTexture, makeGrassTexture } from './env/textures';
+import { GroundSurface } from './env/GroundSurface';
+import { BorderPlanting } from './env/BorderPlanting';
 import { lawnFootpaths } from './env/layout';
 
 const WALL_H = 8;
@@ -13,8 +14,6 @@ function segmentTransform(from: [number, number], to: [number, number]) {
 }
 
 export function Plaza() {
-  const brick = useMemo(() => makeBrickTexture(MAP_SIZE / 8), []);
-  const grass = useMemo(() => makeGrassTexture(), []);
   const walkways = useMemo(() => WALKWAYS.map((w) => ({ ...segmentTransform(w.from, w.to), width: w.width })), []);
   const footpaths = useMemo(() => lawnFootpaths(LAWNS).map((w) => ({ ...segmentTransform(w.from, w.to), width: w.width })), []);
 
@@ -29,10 +28,9 @@ export function Plaza() {
         <CuboidCollider args={[0.5, WALL_H, MAP_HALF]} position={[MAP_HALF + 0.5, WALL_H, 0]} />
       </RigidBody>
 
-      <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[MAP_SIZE, MAP_SIZE]} />
-        <meshStandardMaterial map={brick} roughness={0.9} />
-      </mesh>
+      <group rotation-x={-Math.PI / 2}>
+        <GroundSurface width={MAP_SIZE} depth={MAP_SIZE} surface="clay" />
+      </group>
 
       {/* grey stone walkway strips with darker borders */}
       {walkways.map((w, i) => (
@@ -41,10 +39,9 @@ export function Plaza() {
             <planeGeometry args={[w.length, w.width + 0.6]} />
             <meshStandardMaterial color="#7f7f7c" roughness={0.95} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
           </mesh>
-          <mesh position={[0, 0.02, 0]} rotation-x={-Math.PI / 2} receiveShadow>
-            <planeGeometry args={[w.length, w.width]} />
-            <meshStandardMaterial color="#cfcfca" roughness={0.95} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
-          </mesh>
+          <group position={[0, 0.02, 0]} rotation-x={-Math.PI / 2}>
+            <GroundSurface width={w.length} depth={w.width} surface="granite" offset={-2} />
+          </group>
         </group>
       ))}
 
@@ -52,24 +49,12 @@ export function Plaza() {
         <group key={i} position={[l.x, 0, l.z]}>
           <mesh position={[0, 0.07, 0]} receiveShadow>
             <boxGeometry args={[l.w + 1.6, 0.14, l.d + 1.6]} />
-            <meshStandardMaterial color="#2f6b35" />
+            <meshStandardMaterial color="#796d56" />
           </mesh>
-          <mesh position={[0, 0.15, 0]} rotation-x={-Math.PI / 2} receiveShadow>
-            <planeGeometry args={[l.w, l.d]} />
-            <meshStandardMaterial map={grass} roughness={1} />
-          </mesh>
-          {/* low hedges around the lawn */}
-          {[
-            [0, -l.d / 2 - 0.5, l.w + 1.6, 0.8],
-            [0, l.d / 2 + 0.5, l.w + 1.6, 0.8],
-            [-l.w / 2 - 0.5, 0, 0.8, l.d],
-            [l.w / 2 + 0.5, 0, 0.8, l.d],
-          ].map(([hx, hz, hw, hd], k) => (
-            <mesh key={k} position={[hx, 0.45, hz]} castShadow receiveShadow>
-              <boxGeometry args={[hw, 0.7, hd]} />
-              <meshStandardMaterial color="#24552c" roughness={1} />
-            </mesh>
-          ))}
+          <group position={[0, 0.15, 0]} rotation-x={-Math.PI / 2}>
+            <GroundSurface width={l.w} depth={l.d} surface="lawn" />
+          </group>
+          <BorderPlanting width={l.w} depth={l.d} />
         </group>
       ))}
 

@@ -3,14 +3,7 @@ import * as THREE from 'three';
 import { Instance, Instances } from '@react-three/drei';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { makeEnvTexture } from './env/textures';
 import { ENDING_POINT, STAIR_CANOPY, WAVE_BENCH } from '../game/config';
-
-let envTex: THREE.CanvasTexture | null = null;
-function getEnv(): THREE.CanvasTexture {
-  envTex ??= makeEnvTexture();
-  return envTex;
-}
 
 // Flat ribbon swept along a curve with a twist about its tangent.
 function ribbonGeometry(curve: THREE.Curve<THREE.Vector3>, segs: number, width: number, thick: number, twist: (u: number) => number): THREE.BufferGeometry {
@@ -55,20 +48,23 @@ function WaveBench() {
       const pts: THREE.Vector3[] = [];
       for (let i = 0; i <= 60; i++) {
         const u = i / 60;
-        pts.push(new THREE.Vector3((u - 0.5) * w, 0.8 + Math.sin(u * Math.PI * 6 + k * 1.6) * 0.55, Math.sin(u * Math.PI * 3 + k) * 0.5 * (k ? 1 : -1)));
+        pts.push(new THREE.Vector3((u - 0.5) * w, 0.68 + Math.sin(u * Math.PI * 5 + k * 1.6) * 0.33, (k - 0.5) * 0.72 + Math.sin(u * Math.PI * 3 + k) * 0.27));
       }
-      parts.push(ribbonGeometry(new THREE.CatmullRomCurve3(pts), 240, 1.0, 0.16, (u) => u * Math.PI * 8 + k * 1.2).toNonIndexed());
+      parts.push(ribbonGeometry(new THREE.CatmullRomCurve3(pts), 150, 0.64, 0.068, (u) => Math.sin(u * Math.PI * 5 + k) * 1.15));
     }
-    const g = mergeGeometries(parts);
-    g.computeVertexNormals();
-    return g;
+    return mergeGeometries(parts);
   }, [w]);
-  const env = getEnv();
   return (
     <group position={[x, 0, z]}>
       <mesh geometry={geo} castShadow receiveShadow>
-        <meshStandardMaterial color="#c9d0d6" metalness={0.9} roughness={0.25} envMap={env} envMapIntensity={1.0} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#c8cecb" metalness={0.9} roughness={0.23} envMapIntensity={1.2} side={THREE.DoubleSide} />
       </mesh>
+      {[-0.45, -0.24, 0, 0.24, 0.45].map((u) => (
+        <mesh key={u} position={[u * w, 0.24, 0]} castShadow>
+          <boxGeometry args={[0.14, 0.48, 0.5]} />
+          <meshStandardMaterial color="#828580" metalness={0.65} roughness={0.39} />
+        </mesh>
+      ))}
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[w / 2, 0.6, d / 4]} position={[0, 0.6, 0]} />
       </RigidBody>
@@ -82,7 +78,7 @@ function StairCanopy() {
   const steps = [0, 1, 2, 3, 4, 5];
   const postXs = [-w / 2 + 0.15, w / 2 - 0.15];
   const postZs = [-d / 2 + 0.15, 0, d / 2 - 0.15];
-  const frameMat = <meshStandardMaterial color="#dfe3e6" metalness={0.6} roughness={0.35} envMap={getEnv()} />;
+  const frameMat = <meshStandardMaterial color="#dfe3e6" metalness={0.6} roughness={0.35} />;
   const roofW = w + 0.8;
   const roofD = d + 0.8;
   return (
@@ -130,7 +126,7 @@ function StairCanopy() {
         ))}
         <mesh position={[0, 0.02, 0]} castShadow>
           <boxGeometry args={[roofW - 0.1, 0.05, roofD - 0.1]} />
-          <meshStandardMaterial color="#1e3050" metalness={0.5} roughness={0.3} envMap={getEnv()} />
+          <meshStandardMaterial color="#1e3050" metalness={0.5} roughness={0.3} />
         </mesh>
       </group>
       {/* light railings */}
@@ -210,11 +206,16 @@ function Pergola() {
 function Fountain() {
   const [x, , z] = ENDING_POINT;
   const poly = { polygonOffset: true, polygonOffsetUnits: -2 } as const;
+  const spray = useMemo(() => mergeGeometries(Array.from({ length: 12 }, (_, i) => {
+    const a = i * Math.PI / 6;
+    const p = (radius: number, y: number) => new THREE.Vector3(radius * Math.cos(a), y, radius * Math.sin(a));
+    return new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(p(0.12, 1.6), p(0.7, 2.5), p(1.43, 0.64)), 20, 0.015, 5, false);
+  })), []);
   return (
     <group position={[x, 0, z]}>
       <mesh position={[0, 0.03, 0]} rotation-x={-Math.PI / 2} receiveShadow>
         <ringGeometry args={[1.9, 3.4, 48]} />
-        <meshStandardMaterial color="#f5d58a" emissive="#f5b84a" emissiveIntensity={0.25} polygonOffsetFactor={-4} {...poly} />
+        <meshStandardMaterial color="#cbaf76" roughness={0.68} polygonOffsetFactor={-4} {...poly} />
       </mesh>
       <mesh position={[0, 0.04, 0]} rotation-x={-Math.PI / 2}>
         <ringGeometry args={[3.4, 3.7, 48]} />
@@ -226,15 +227,18 @@ function Fountain() {
       </mesh>
       <mesh position={[0, 0.61, 0]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[1.62, 40]} />
-        <meshStandardMaterial color="#5fc3e4" roughness={0.1} metalness={0.2} emissive="#2a8fb8" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#70a5a4" roughness={0.12} metalness={0.48} />
       </mesh>
       <mesh position={[0, 1.2, 0]} castShadow>
         <cylinderGeometry args={[0.18, 0.3, 1.8, 12]} />
         <meshStandardMaterial color="#e9e4dc" />
       </mesh>
-      <mesh position={[0, 2.35, 0]}>
-        <coneGeometry args={[0.45, 1.0, 16, 1, true]} />
-        <meshStandardMaterial color="#bfeaff" transparent opacity={0.55} emissive="#8fd8ff" emissiveIntensity={0.4} side={THREE.DoubleSide} />
+      <mesh geometry={spray}>
+        <meshPhysicalMaterial color="#cce9ec" metalness={0.15} roughness={0.16} clearcoat={0.9} transparent opacity={0.78} />
+      </mesh>
+      <mesh position={[0, 0.61, 0]} rotation-x={Math.PI / 2} receiveShadow>
+        <torusGeometry args={[1.72, 0.11, 9, 72]} />
+        <meshStandardMaterial color="#c7c3b5" roughness={0.76} />
       </mesh>
       <mesh position={[0, 3.0, 0]}>
         <octahedronGeometry args={[0.28]} />

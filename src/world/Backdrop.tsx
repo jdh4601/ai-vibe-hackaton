@@ -1,9 +1,10 @@
+import { GroundSurface } from './env/GroundSurface';
+import { Environment, Instance, Instances, useTexture } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MAP_HALF } from '../game/config';
 import { mulberry32 } from './env/rng';
-import { makeCloudTexture, makeSkyTexture, makeWindowTexture } from './env/textures';
+import { makeWindowTexture } from './env/textures';
 
 const SEA_START = MAP_HALF + 2; // sea begins just north (-z) of the plaza edge
 
@@ -18,10 +19,11 @@ const SEA_FRAG = /* glsl */ `
 varying vec3 vWorld;
 void main() {
   float t = clamp((-vWorld.z - ${SEA_START}.0) / 400.0, 0.0, 1.0);
-  vec3 near = vec3(0.16, 0.45, 0.74);
-  vec3 far = vec3(0.40, 0.65, 0.88);
+  vec3 near = vec3(0.20, 0.39, 0.42);
+  vec3 far = vec3(0.55, 0.69, 0.71);
   vec3 col = mix(near, far, pow(t, 0.7));
-  col += sin(vWorld.x * 0.35) * sin(vWorld.z * 0.5) * 0.012;
+  float ripple = sin(vWorld.z * 2.7 + sin(vWorld.x * 0.49)) + sin(vWorld.z * 6.0 - vWorld.x * 0.33);
+  col += 0.035 * smoothstep(0.9, 1.8, ripple) * (1.0 - t);
   gl_FragColor = vec4(col, 1.0);
 }`;
 
@@ -64,51 +66,27 @@ function Shore() {
   );
 }
 
-// Park-green land outside the plaza with scattered tree clumps (one merged mesh).
+// Plaza-facing cutouts keep the far treeline detailed without rendering distant leaf meshes.
 function OuterTrees() {
-  const geo = useMemo(() => {
+  const canopy = useTexture(import.meta.env.BASE_URL + 'art/campus/treeline.webp', (map) => { map.colorSpace = THREE.SRGBColorSpace; });
+  const geometry = useMemo(() => new THREE.PlaneGeometry(0.92, 1).translate(0, 0.5, 0), []);
+  const forest = useMemo(() => {
     const rnd = mulberry32(31);
-    const parts: THREE.BufferGeometry[] = [];
-    const paint = (g: THREE.BufferGeometry, c: THREE.Color) => {
-      const n = g.getAttribute('position').count;
-      const arr = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) c.toArray(arr, i * 3);
-      g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
-      return g;
-    };
-    let placed = 0;
-    while (placed < 160) {
-      const cx = (rnd() - 0.5) * 360;
-      const cz = -40 + rnd() * 330;
-      if (Math.abs(cx) < 70 && cz < 70) continue; // keep clear of the plaza
-      if (cx > 56 && cx < 112 && cz > -96 && cz < -4) continue; // glass building
-      const n = 2 + Math.floor(rnd() * 4);
-      for (let k = 0; k < n; k++) {
-        const x = cx + (rnd() - 0.5) * 12;
-        const z = cz + (rnd() - 0.5) * 12;
-        const h = 5 + rnd() * 4;
-        const trunk = paint(new THREE.CylinderGeometry(0.25, 0.35, h * 0.5, 5).translate(x, h * 0.25, z), new THREE.Color('#6b4a32'));
-        const crown = paint(new THREE.IcosahedronGeometry(2 + rnd() * 1.5, 0).translate(x, h * 0.75, z), new THREE.Color().setHSL(0.27 + rnd() * 0.04, 0.5, 0.3 + rnd() * 0.1));
-        parts.push(trunk.toNonIndexed(), crown.toNonIndexed());
-        placed++;
-      }
+    const trees: [number, number, number, number][] = [];
+    while (trees.length < 370) {
+      const x = (rnd() - 0.5) * 430;
+      const z = -60 + rnd() * 330;
+      if (Math.abs(x) < 70 && z < 70) continue;
+      if (x > 56 && x < 112 && z < -4) continue;
+      trees.push([x, z, 4 + rnd() * 6, Math.atan2(-x, -z) + (rnd() - 0.5) * 0.38]);
     }
-    return mergeGeometries(parts);
+    return trees;
   }, []);
   return (
-    <mesh geometry={geo}>
-      <meshStandardMaterial vertexColors flatShading />
-    </mesh>
-  );
-}
-
-function SkyDome() {
-  const tex = useMemo(() => makeSkyTexture(), []);
-  return (
-    <mesh renderOrder={-10}>
-      <sphereGeometry args={[1000, 24, 16]} />
-      <meshBasicMaterial map={tex} side={THREE.BackSide} fog={false} depthWrite={false} />
-    </mesh>
+    <Instances geometry={geometry} limit={forest.length} frames={1} frustumCulled={false}>
+      <meshBasicMaterial map={canopy} alphaTest={0.45} side={THREE.DoubleSide} />
+      {forest.map(([x, z, height, yaw], i) => <Instance key={i} position={[x, -0.1, z]} scale={height} rotation-y={yaw} />)}
+    </Instances>
   );
 }
 
@@ -136,64 +114,52 @@ function LngTanks() {
   );
 }
 
+// Two continuous coastal ridgelines. The lower north ridge leaves the sea visible.
 function Mountains() {
-  const geo = useMemo(() => {
-    const rnd = mulberry32(99);
-    const parts: THREE.BufferGeometry[] = [];
-    const add = (x: number, z: number, r: number, h: number) => {
-      const g = new THREE.ConeGeometry(r, h, 7, 1);
-      g.translate(x, h / 2 - 2, z);
-      parts.push(g.toNonIndexed());
-    };
-    for (let i = 0; i < 12; i++) add(-440 + i * 80 + rnd() * 30, 460 + rnd() * 30, 90 + rnd() * 40, 35 + rnd() * 35); // south
-    for (let i = 0; i < 12; i++) add(-440 + i * 80 + rnd() * 30, -520 - rnd() * 30, 90 + rnd() * 50, 18 + rnd() * 22); // north, low on the horizon
-    for (let i = 0; i < 8; i++) {
-      add(-460 - rnd() * 30, -400 + i * 110, 80 + rnd() * 30, 25 + rnd() * 30);
-      add(460 + rnd() * 30, -400 + i * 110, 80 + rnd() * 30, 25 + rnd() * 30);
+  const geometry = useMemo(() => {
+    const xyz: number[] = [];
+    const indices: number[] = [];
+    const segments = 380;
+    for (let ring = 0; ring < 3; ring++) {
+      for (let i = 0; i <= segments; i++) {
+        const a = i * Math.PI * 2 / segments;
+        const coast = (1 - Math.cos(a)) / 2;
+        const ridge = 0.5 + 0.21 * Math.sin(9 * a) + 0.13 * Math.sin(17 * a + 1) + 0.1 * Math.cos(31 * a) + 0.04 * Math.sin(77 * a);
+        const radius = 495 + ring * 43;
+        const height = ring === 0 ? -6 : (9 + coast * 19) * ridge * ring;
+        xyz.push(Math.sin(a) * radius, height, -Math.cos(a) * radius);
+        const j = ring * (segments + 1) + i;
+        if (ring < 2 && i < segments) indices.push(j, j + 1, j + segments + 1, j + 1, j + segments + 2, j + segments + 1);
+      }
     }
-    return mergeGeometries(parts);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(xyz, 3));
+    g.setIndex(indices);
+    g.computeVertexNormals();
+    return g;
   }, []);
-  return (
-    <mesh geometry={geo}>
-      <meshStandardMaterial color="#8da7c6" flatShading />
-    </mesh>
-  );
-}
-
-function Clouds() {
-  const tex = useMemo(() => makeCloudTexture(), []);
-  const clouds = useMemo(() => {
-    const rnd = mulberry32(5);
-    return Array.from({ length: 14 }, () => ({ x: (rnd() - 0.5) * 900, z: -500 + rnd() * 700, y: 160 + rnd() * 90, s: 160 + rnd() * 180 }));
-  }, []);
-  return (
-    <group>
-      {clouds.map((c, i) => (
-        <mesh key={i} position={[c.x, c.y, c.z]} rotation-x={Math.PI / 2} scale={[c.s, c.s * 0.5, 1]}>
-          <planeGeometry args={[1, 1]} />
-          <meshBasicMaterial map={tex} transparent depthWrite={false} fog={false} side={THREE.DoubleSide} />
-        </mesh>
-      ))}
-    </group>
-  );
+  return <mesh geometry={geometry}><meshBasicMaterial color="#849996" side={THREE.DoubleSide} /></mesh>;
 }
 
 export function Backdrop() {
   const landDepth = 520;
+  const clouds = useTexture(import.meta.env.BASE_URL + 'art/campus/cloudscape.webp', (map) => { map.colorSpace = THREE.SRGBColorSpace; });
   return (
     <group>
       {/* surrounding land outside the plaza (south / east / west) */}
-      <mesh position={[0, -0.1, -SEA_START + landDepth / 2]} rotation-x={-Math.PI / 2}>
-        <planeGeometry args={[1400, landDepth]} />
-        <meshStandardMaterial color="#7eaa5c" />
+      <group position={[0, -0.1, -SEA_START + landDepth / 2]} rotation-x={-Math.PI / 2}>
+        <GroundSurface width={1400} depth={landDepth} surface="lawn" />
+      </group>
+      <Environment files={import.meta.env.BASE_URL + 'art/campus/daylight.hdr'} environmentIntensity={0.52} />
+      <mesh renderOrder={-10} rotation-y={0.7}>
+        <sphereGeometry args={[960, 64, 32]} />
+        <meshBasicMaterial map={clouds} side={THREE.BackSide} fog={false} toneMapped={false} depthWrite={false} />
       </mesh>
-      <SkyDome />
       <Sea />
       <Shore />
       <OuterTrees />
       <LngTanks />
       <Mountains />
-      <Clouds />
     </group>
   );
 }

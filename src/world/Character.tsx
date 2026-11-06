@@ -1,15 +1,9 @@
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, type RefObject } from 'react';
-import {
-  BoxGeometry,
-  CylinderGeometry,
-  MeshStandardMaterial,
-  SphereGeometry,
-  TorusGeometry,
-  type Group,
-} from 'three';
+import { useEffect, useMemo, useRef, type RefObject } from 'react';
+import { CanvasTexture, Mesh, MeshStandardMaterial, PlaneGeometry, SphereGeometry, TorusGeometry, type Group } from 'three';
+import { useGLTF, useTexture } from '@react-three/drei';
 import type { JacketSpec, MoveMode } from '../game/types';
-import { useJacketMaterials } from './JacketMaterial';
+import { useStudentMaterials } from './JacketMaterial';
 
 export type HairStyle = 'short' | 'long' | 'bun' | 'bald';
 
@@ -27,64 +21,39 @@ export interface CharacterProps {
   animateRef?: RefObject<boolean>;
 }
 
-// Stylized slim young adult, ~6.4 heads tall. Feet at y = 0, facing -z (the jacket back faces +z).
-// Matches assets/characters/hero/hero-*-v2.png: varsity jacket over a white tee, light jeans, white sneakers.
-const HIP_Y = 0.9;
-const LEG_LEN = 0.83;
-const JACKET_Y0 = 0.88;
-const JACKET_H = 0.52;
-const JACKET_W = 0.42;
-const JACKET_D = 0.25;
-const SHOULDER_Y = 1.35;
-const SHOULDER_X = JACKET_W / 2 + 0.045;
-const ARM_LEN = 0.5;
-const HEAD_Y = 1.585;
-const HEAD_R = 0.12;
-const HEAD_SCALE: [number, number, number] = [1, 1.12, 1.05];
+const glassesFrame = new TorusGeometry(0.027, 0.0025, 6, 24);
+const frameMaterial = new MeshStandardMaterial({ color: '#393536', metalness: 0.5, roughness: 0.35 });
+const hairVolume = new SphereGeometry(1, 24, 16);
 
-const g = {
-  head: new SphereGeometry(HEAD_R, 28, 20),
-  hairCap: new SphereGeometry(HEAD_R * 1.07, 28, 16, 0, Math.PI * 2, 0, Math.PI * 0.62),
-  hairBack: new SphereGeometry(HEAD_R * 1.05, 20, 14),
-  tuft: new SphereGeometry(0.034, 10, 8),
-  bun: new SphereGeometry(0.05, 12, 10),
-  ear: new SphereGeometry(0.028, 10, 8),
-  eye: new SphereGeometry(0.014, 10, 8),
-  brow: new BoxGeometry(0.04, 0.007, 0.01),
-  mouth: new BoxGeometry(0.03, 0.006, 0.008),
-  nose: new SphereGeometry(0.014, 8, 6),
-  glassRing: new TorusGeometry(0.03, 0.0035, 6, 18),
-  neck: new CylinderGeometry(0.045, 0.05, 0.1, 12),
-  torso: new BoxGeometry(JACKET_W, JACKET_H, JACKET_D),
-  pelvis: new BoxGeometry(0.31, 0.12, 0.21),
-  collar: new CylinderGeometry(0.085, 0.095, 0.06, 16),
-  collarRing: new CylinderGeometry(0.0905, 0.0985, 0.01, 16),
-  shoulder: new SphereGeometry(0.058, 12, 10),
-  sleeve: new CylinderGeometry(0.052, 0.046, ARM_LEN, 12),
-  cuff: new CylinderGeometry(0.049, 0.049, 0.065, 12),
-  cuffRing: new CylinderGeometry(0.0505, 0.0505, 0.01, 12),
-  hand: new SphereGeometry(0.044, 10, 8),
-  leg: new CylinderGeometry(0.085, 0.07, LEG_LEN, 12),
-  shoe: new BoxGeometry(0.105, 0.07, 0.27),
-  sole: new BoxGeometry(0.11, 0.022, 0.275),
-  // decal on the outer side (+x) of the right sleeve, wrapped around the cylinder
-  number: new CylinderGeometry(0.0535, 0.0515, 0.1, 14, 1, true, Math.PI / 2 - 0.75, 1.5),
-};
-const eyeMat = new MeshStandardMaterial({ color: '#17141a', roughness: 0.4 });
-const mouthMat = new MeshStandardMaterial({ color: '#b5655f', roughness: 0.7 });
-const shoeMat = new MeshStandardMaterial({ color: '#f6f6f6', roughness: 0.6, emissive: '#ffffff', emissiveIntensity: 0.25 });
-const soleMat = new MeshStandardMaterial({ color: '#d9d9d9', roughness: 0.8 });
-const glassMat = new MeshStandardMaterial({ color: '#2a2a2e', roughness: 0.3, metalness: 0.4 });
+// Match the curvature of the shoulder-blade panel so the embroidery stays on the cloth.
+const stitchPanel = new PlaneGeometry(0.25, 0.04, 12, 1);
+const stitchVertices = stitchPanel.attributes.position!;
+for (let i = 0; i < stitchVertices.count; i++) {
+  const unitX = Math.abs(stitchVertices.getX(i) / 0.17);
+  stitchVertices.setZ(i, 0.014 + 0.135 * Math.pow(1 - Math.pow(unitX, 2.47), 0.405));
+}
+stitchPanel.computeVertexNormals();
 
-const TUFTS: [number, number, number][] = [
-  [-0.05, 0.125, -0.02],
-  [0.04, 0.13, -0.04],
-  [0.0, 0.135, 0.03],
-  [0.075, 0.1, 0.02],
-  [-0.075, 0.105, 0.0],
-  [-0.02, 0.11, -0.09],
-  [0.05, 0.1, -0.08],
-];
+function DepartmentStitch({ text }: { text: string }) {
+  const label = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 80;
+    const pen = canvas.getContext('2d')!;
+    pen.font = 'bold 54px sans-serif';
+    pen.fillStyle = '#faf5e6';
+    pen.textAlign = 'center';
+    pen.textBaseline = 'middle';
+    pen.fillText(text, 256, 40, 480);
+    return new CanvasTexture(canvas);
+  }, [text]);
+  useEffect(() => () => label.dispose(), [label]);
+  return (
+    <mesh position-y={1.155} geometry={stitchPanel}>
+      <meshStandardMaterial map={label} transparent depthWrite={false} />
+    </mesh>
+  );
+}
 
 const MODE_PARAMS: Record<MoveMode, { freq: number; swing: number; arm: number; bob: number; lean: number }> = {
   idle: { freq: 1.6, swing: 0.0, arm: 0.03, bob: 0.004, lean: 0 },
@@ -104,15 +73,13 @@ export function Character({
   phase = 0,
   animateRef,
 }: CharacterProps) {
-  const mats = useJacketMaterials(jacket);
-  const skinMat = useMemo(() => new MeshStandardMaterial({ color: skinColor, roughness: 0.7, emissive: skinColor, emissiveIntensity: 0.3 }), [skinColor]);
-  const hairMat = useMemo(() => new MeshStandardMaterial({ color: hairColor, roughness: 0.75 }), [hairColor]);
-  const pantsMat = useMemo(() => new MeshStandardMaterial({ color: pantsColor, roughness: 0.9, emissive: pantsColor, emissiveIntensity: 0.3 }), [pantsColor]);
-  // BoxGeometry face order: +x, -x, +y, -y, +z (back), -z (front)
-  const torsoMats = useMemo(
-    () => [mats.side, mats.side, mats.body, pantsMat, mats.back, mats.front],
-    [mats, pantsMat],
-  );
+  const { nodes } = useGLTF(import.meta.env.BASE_URL + 'art/student/student.glb');
+  const dyes = useTexture(import.meta.env.BASE_URL + 'art/student/dyes.png', (texture) => {
+    texture.flipY = false; // match the embedded glTF atlas
+  });
+  const parts = nodes as Record<'Head' | 'Jacket' | 'LeftArm' | 'RightArm' | 'LeftLeg' | 'RightLeg', Mesh>;
+  const atlas = (parts.Jacket.material as MeshStandardMaterial).map!;
+  const materials = useStudentMaterials(atlas, dyes, jacket, skinColor, hairColor, pantsColor, hairStyle === 'bald');
 
   const root = useRef<Group>(null);
   const legL = useRef<Group>(null);
@@ -147,77 +114,31 @@ export function Character({
     }
   });
 
-  const eyeY = 0.004;
   return (
     <group scale={scale}>
       <group ref={root}>
-        {/* legs: pivot at the hip */}
-        {([-0.095, 0.095] as const).map((x, i) => (
-          <group key={x} ref={i === 0 ? legL : legR} position={[x, HIP_Y, 0]}>
-            <mesh geometry={g.leg} material={pantsMat} position={[0, -LEG_LEN / 2, 0]} castShadow />
-            <mesh geometry={g.shoe} material={shoeMat} position={[0, -LEG_LEN - 0.015, -0.05]} castShadow />
-            <mesh geometry={g.sole} material={soleMat} position={[0, -LEG_LEN - 0.05, -0.05]} />
+        <mesh geometry={parts.Jacket.geometry} material={materials.jacket} castShadow />
+        <mesh geometry={parts.Head.geometry} material={materials.head} castShadow />
+        {jacket.departmentLine && <DepartmentStitch text={jacket.departmentLine} />}
+        {(['LeftLeg', 'RightLeg', 'LeftArm', 'RightArm'] as const).map((part, i) => (
+          <group key={part} ref={[legL, legR, armL, armR][i]} position={parts[part].position}>
+            <mesh geometry={parts[part].geometry} material={i < 2 ? materials.denim : materials.jacket} castShadow />
           </group>
         ))}
-        <mesh geometry={g.pelvis} material={pantsMat} position={[0, HIP_Y + 0.02, 0]} />
-        {/* jacket torso (open front over a white tee) */}
-        <mesh geometry={g.torso} material={torsoMats} position={[0, JACKET_Y0 + JACKET_H / 2, 0]} castShadow />
-        {/* ribbed stand collar */}
-        <mesh geometry={g.collar} material={mats.body} position={[0, 1.43, 0.005]} />
-        <mesh geometry={g.collarRing} material={mats.sleeve} position={[0, 1.44, 0.005]} />
-        <mesh geometry={g.collarRing} material={mats.sleeve} position={[0, 1.415, 0.005]} />
-        <mesh geometry={g.neck} material={skinMat} position={[0, 1.47, -0.005]} />
-        {/* arms: pivot at the shoulder; the "27" decal is on the wearer's right (+x) sleeve only */}
-        {([-1, 1] as const).map((side) => (
-          <group
-            key={side}
-            ref={side === -1 ? armL : armR}
-            position={[side * SHOULDER_X, SHOULDER_Y, 0]}
-            rotation={[0, 0, side * 0.05]}
-          >
-            <mesh geometry={g.shoulder} material={mats.sleeve} />
-            <mesh geometry={g.sleeve} material={mats.sleeve} position={[0, -ARM_LEN / 2, 0]} castShadow />
-            <mesh geometry={g.cuff} material={mats.body} position={[0, -ARM_LEN + 0.005, 0]} />
-            <mesh geometry={g.cuffRing} material={mats.sleeve} position={[0, -ARM_LEN + 0.018, 0]} />
-            <mesh geometry={g.cuffRing} material={mats.sleeve} position={[0, -ARM_LEN - 0.008, 0]} />
-            <mesh geometry={g.hand} material={skinMat} position={[0, -ARM_LEN - 0.07, 0]} scale={[0.9, 1.7, 0.7]} />
-            {side === 1 && <mesh geometry={g.number} material={mats.sleeveNumber} position={[0, -0.15, 0]} />}
+        {(hairStyle === 'long' || hairStyle === 'bun') && (
+          <mesh geometry={hairVolume} position={[0, hairStyle === 'bun' ? 1.66 : 1.525, 0.068]}
+            scale={hairStyle === 'bun' ? [0.061, 0.056, 0.062] : [0.095, 0.143, 0.055]} castShadow>
+            <meshStandardMaterial color={hairColor} roughness={0.76} />
+          </mesh>
+        )}
+        {glasses && (
+          <group position={[0, 1.618, -0.106]}>
+            {[-1, 1].map((side) => (
+              <mesh key={side} geometry={glassesFrame} material={frameMaterial} position-x={side * 0.035} scale={[1.18, 0.78, 1]} />
+            ))}
+            <mesh material={frameMaterial}><boxGeometry args={[0.018, 0.004, 0.003]} /></mesh>
           </group>
-        ))}
-        {/* head */}
-        <group position={[0, HEAD_Y, 0]}>
-          <group scale={HEAD_SCALE}>
-            <mesh geometry={g.head} material={skinMat} castShadow />
-            {hairStyle !== 'bald' && (
-              <mesh geometry={g.hairCap} material={hairMat} position={[0, 0.006, 0.014]} rotation={[-0.32, 0, 0]} />
-            )}
-            {(hairStyle === 'short' || hairStyle === 'bun') && (
-              <mesh geometry={g.hairBack} material={hairMat} position={[0, 0.0, 0.03]} scale={[1, 0.88, 0.85]} />
-            )}
-            {hairStyle === 'long' && (
-              <mesh geometry={g.hairBack} material={hairMat} position={[0, -0.07, 0.04]} scale={[1, 1.15, 0.85]} />
-            )}
-            {hairStyle === 'bun' && <mesh geometry={g.bun} material={hairMat} position={[0, 0.125, 0.04]} />}
-            {hairStyle !== 'bald' &&
-              TUFTS.map((p, i) => (
-                <mesh key={i} geometry={g.tuft} material={hairMat} position={p} scale={[1, 0.8, 1.1]} />
-              ))}
-          </group>
-          <mesh geometry={g.ear} material={skinMat} position={[-HEAD_R - 0.002, 0, 0.005]} scale={[0.5, 1.2, 1]} />
-          <mesh geometry={g.ear} material={skinMat} position={[HEAD_R + 0.002, 0, 0.005]} scale={[0.5, 1.2, 1]} />
-          <mesh geometry={g.eye} material={eyeMat} position={[-0.043, eyeY, -0.123]} scale={[1, 1.4, 0.6]} />
-          <mesh geometry={g.eye} material={eyeMat} position={[0.043, eyeY, -0.123]} scale={[1, 1.4, 0.6]} />
-          <mesh geometry={g.brow} material={hairMat} position={[-0.043, 0.032, -0.121]} rotation={[0, 0, 0.08]} />
-          <mesh geometry={g.brow} material={hairMat} position={[0.043, 0.032, -0.121]} rotation={[0, 0, -0.08]} />
-          <mesh geometry={g.nose} material={skinMat} position={[0, -0.018, -0.13]} scale={[0.9, 1, 0.8]} />
-          <mesh geometry={g.mouth} material={mouthMat} position={[0, -0.055, -0.122]} />
-          {glasses && (
-            <>
-              <mesh geometry={g.glassRing} material={glassMat} position={[-0.043, eyeY, -0.13]} />
-              <mesh geometry={g.glassRing} material={glassMat} position={[0.043, eyeY, -0.13]} />
-            </>
-          )}
-        </group>
+        )}
       </group>
     </group>
   );

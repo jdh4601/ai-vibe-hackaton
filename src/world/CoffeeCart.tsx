@@ -1,8 +1,9 @@
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { useMemo, useState } from 'react';
-import { CanvasTexture, ConeGeometry, DoubleSide, SRGBColorSpace } from 'three';
+import { BoxGeometry, CanvasTexture, Color, CylinderGeometry, Float32BufferAttribute, ConeGeometry, DoubleSide, SRGBColorSpace } from 'three';
 import { COFFEE_CARTS, INTERACT_RADIUS } from '../game/config';
 import type { Vec3 } from '../game/types';
 import { useGameStore } from '../stores/useGameStore';
@@ -10,6 +11,20 @@ import { usePlayerStore } from '../stores/usePlayerStore';
 import { playerLive } from './playerLive';
 
 const umbrellaGeo = new ConeGeometry(1.5, 0.6, 12, 1, true);
+
+// Alternate the fabric panels around the canopy without extra draw calls.
+const stripes: number[] = [];
+const umbrellaPanels = umbrellaGeo.toNonIndexed();
+for (let i = 0; i < umbrellaPanels.attributes.position!.count; i++) {
+  const tint = new Color(Math.floor(i / 3) % 2 ? '#ac6650' : '#e5d5b6');
+  stripes.push(tint.r, tint.g, tint.b);
+}
+umbrellaPanels.setAttribute('color', new Float32BufferAttribute(stripes, 3));
+
+const counterSlats = mergeGeometries(Array.from({ length: 21 }, (_, i) =>
+  new BoxGeometry(0.072, 0.74, 0.93).translate((i - 10) * 0.083, 0.58, 0)));
+const cupLids = mergeGeometries([-0.4, -0.15, 0.1].map((x) =>
+  new CylinderGeometry(0.074, 0.073, 0.018, 16).translate(x, 1.246, 0)));
 
 function signTexture(): CanvasTexture {
   const c = document.createElement('canvas');
@@ -51,12 +66,16 @@ function Cart({ id, position }: { id: string; position: Vec3 }) {
         {/* counter */}
         <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
           <boxGeometry args={[1.8, 1.0, 0.9]} />
-          <meshStandardMaterial color="#8a5a3a" roughness={0.8} />
+          <meshStandardMaterial color="#574738" roughness={0.8} />
         </mesh>
         <mesh position={[0, 1.02, 0]} castShadow>
           <boxGeometry args={[1.9, 0.06, 1.0]} />
           <meshStandardMaterial color="#f1e3cf" roughness={0.6} />
         </mesh>
+        <mesh geometry={counterSlats} castShadow receiveShadow>
+          <meshStandardMaterial color="#ab7b55" roughness={0.8} />
+        </mesh>
+        <mesh geometry={cupLids}><meshStandardMaterial color="#e7e0cf" roughness={0.52} /></mesh>
         {/* wheels */}
         {([-0.7, 0.7] as const).map((x) => (
           <mesh key={x} position={[x, 0.18, 0.5]} rotation={[0, 0, Math.PI / 2]}>
@@ -68,7 +87,7 @@ function Cart({ id, position }: { id: string; position: Vec3 }) {
         {([-0.4, -0.15, 0.1] as const).map((x) => (
           <mesh key={x} position={[x, 1.15, 0]} castShadow>
             <cylinderGeometry args={[0.07, 0.055, 0.18, 12]} />
-            <meshStandardMaterial color="#c9eaf5" transparent opacity={0.75} />
+            <meshStandardMaterial color="#926c50" roughness={0.35} />
           </mesh>
         ))}
         {/* pole + umbrella */}
@@ -76,15 +95,15 @@ function Cart({ id, position }: { id: string; position: Vec3 }) {
           <cylinderGeometry args={[0.04, 0.04, 1.5, 8]} />
           <meshStandardMaterial color="#d8d8d8" metalness={0.4} />
         </mesh>
-        <mesh geometry={umbrellaGeo} position={[0.3, 2.55, 0.2]} castShadow>
-          <meshStandardMaterial color="#e86a5a" side={DoubleSide} roughness={0.7} />
+        <mesh geometry={umbrellaPanels} position={[0.3, 2.55, 0.2]} castShadow>
+          <meshStandardMaterial vertexColors side={DoubleSide} roughness={0.7} />
         </mesh>
         {/* sign (faces -z, toward the plaza center from the south edge) */}
-        <mesh position={[0, 0.58, -0.46]} rotation={[0, Math.PI, 0]}>
+        <mesh position={[0, 0.58, -0.474]} rotation={[0, Math.PI, 0]}>
           <planeGeometry args={[1.2, 0.45]} />
           <meshStandardMaterial map={sign} />
         </mesh>
-        <mesh position={[0, 0.58, 0.46]}>
+        <mesh position={[0, 0.58, 0.474]}>
           <planeGeometry args={[1.2, 0.45]} />
           <meshStandardMaterial map={sign} />
         </mesh>

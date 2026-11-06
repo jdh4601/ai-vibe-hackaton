@@ -50,12 +50,12 @@ export function GameCanvas({ children }: { children?: ReactNode }) {
         dpr={LOW_QUALITY ? 1 : [1, 1.75]}
         camera={{ fov: 55, near: 0.1, far: 1200, position: [0, 4, 56] }}
       >
-        <fog attach="fog" args={['#b4d3ee', 180, 900]} />
-        <hemisphereLight args={['#dfefff', '#c9a27a', 0.7]} />
+        <fog attach="fog" args={['#cdd8d9', 110, 690]} />
+        <hemisphereLight args={['#e4edf6', '#baa88f', 0.52]} />
         <directionalLight
-          position={[40, 60, 20]}
-          intensity={2.2}
-          color="#fff1d6"
+          position={[-43, 46, 28]}
+          intensity={2.65}
+          color="#fff0d9"
           castShadow={!LOW_QUALITY}
           shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-60}
@@ -78,7 +78,7 @@ export function GameCanvas({ children }: { children?: ReactNode }) {
         </Suspense>
         {!LOW_QUALITY && (
           <EffectComposer multisampling={0} frameBufferType={THREE.UnsignedByteType}>
-            <Bloom intensity={0.3} luminanceThreshold={0.9} mipmapBlur />
+            <Bloom intensity={0.1} luminanceThreshold={0.98} mipmapBlur />
             <SMAA />
           </EffectComposer>
         )}
