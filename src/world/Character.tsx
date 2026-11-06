@@ -130,8 +130,14 @@ export function Character({
         {hairStyle !== 'bald' && (
           <mesh geometry={hairCapGeo} material={hairMat} position={[0, 0.02, 0.025]} rotation={[-0.25, 0, 0]} />
         )}
+        {hairStyle === 'short' && (
+          <mesh geometry={hairBackGeo} material={hairMat} position={[0, 0.0, 0.07]} scale={[1, 0.9, 0.85]} />
+        )}
         {hairStyle === 'long' && (
           <mesh geometry={hairBackGeo} material={hairMat} position={[0, -0.07, 0.1]} scale={[1, 1.05, 0.8]} />
+        )}
+        {hairStyle === 'bun' && (
+          <mesh geometry={hairBackGeo} material={hairMat} position={[0, 0.0, 0.07]} scale={[1, 0.9, 0.85]} />
         )}
         {hairStyle === 'bun' && <mesh geometry={bunGeo} material={hairMat} position={[0, HEAD_R + 0.04, 0.04]} />}
         <mesh geometry={eyeGeo} material={eyeMat} position={[-0.1, 0.0, -HEAD_R + 0.01]} scale={[1, 1.3, 0.6]} />
