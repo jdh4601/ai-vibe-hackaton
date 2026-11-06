@@ -2,11 +2,14 @@ import { ENDING_POINT } from '../game/config';
 import { NPCS } from '../data/npcs';
 import { QUESTS } from '../data/quests';
 import type { NpcDef, QuestId, QuestProgress, Vec3 } from '../game/types';
+import { useDialogueStore } from '../stores/useDialogueStore';
+import { useGameStore } from '../stores/useGameStore';
 import { useNotificationStore } from '../stores/useNotificationStore';
 import { usePlayerStore } from '../stores/usePlayerStore';
 import { useQuestStore } from '../stores/useQuestStore';
 
 const FRONT_DISTANCE_M = 2.5;
+const AUTO_TALK_DELAY_MS = 900;
 
 // The next uncleared quest NPC (by quest order) and a spot 2.5 m in front of it.
 export function nextQuestSpot(quests: Record<QuestId, QuestProgress>): { npc: NpcDef; position: Vec3 } | null {
@@ -28,6 +31,11 @@ export function goToNextQuest(): void {
   if (spot) {
     usePlayerStore.getState().requestTeleport(spot.position);
     notify.push(`다음 선배에게 왔어요: ${spot.npc.displayName}`, '➡️');
+    // open the next offer right after landing so quests run back to back
+    const npcId = spot.npc.id;
+    setTimeout(() => {
+      if (useGameStore.getState().phase === 'explore') useDialogueStore.getState().start(npcId);
+    }, AUTO_TALK_DELAY_MS);
     return;
   }
   // stop just short of the ★ so the ending starts when the player steps onto it

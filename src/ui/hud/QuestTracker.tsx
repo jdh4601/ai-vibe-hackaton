@@ -2,6 +2,7 @@ import { REQUIRED_SKILLS } from '../../game/config';
 import { getDepartment } from '../../data/departments';
 import { getQuest } from '../../data/quests';
 import { QUEST_IDS, useQuestStore } from '../../stores/useQuestStore';
+import { nextQuestSpot } from '../../systems/nextQuest';
 
 export function QuestTracker() {
   const quests = useQuestStore((s) => s.quests);
@@ -11,6 +12,9 @@ export function QuestTracker() {
   const cleared = QUEST_IDS.filter((id) => quests[id].status === 'cleared').length;
   const activeId = QUEST_IDS.find((id) => quests[id].status === 'inProgress');
   const activeTitle = activeId ? getQuest(activeId)?.title : undefined;
+  // with nothing in progress, always point at the next senior so the goal is visible from the start
+  const next = !activeId && !endingUnlocked ? nextQuestSpot(quests) : null;
+  const nextDept = next ? getDepartment(next.npc.departmentId)?.name : undefined;
   const deadline = deadlineQuestId ? getQuest(deadlineQuestId) : undefined;
   const deadlineDept = deadline ? getDepartment(deadline.departmentId)?.name : undefined;
 
@@ -24,6 +28,11 @@ export function QuestTracker() {
         {QUEST_IDS.map((id, i) => <div key={id} className={`qt-pip${i < cleared ? ' on' : ''}`} />)}
       </div>
       {activeTitle && <div className="qt-active">진행 중: {activeTitle}</div>}
+      {next && (
+        <div className="qt-active" data-testid="qt-next">
+          다음 퀘스트: {nextDept} {next.npc.displayName} (! 표시, E로 대화)
+        </div>
+      )}
       {deadline && (
         <div className="qt-deadline">오늘 마감: {deadlineDept ?? deadline.title} 선배 찾아가기</div>
       )}
