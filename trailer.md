@@ -13,7 +13,7 @@
 > 합격은 했다. 그런데 나는 뭘 좋아하는지 모른다. 문을 열자, 학과들이 기다리는 세계가 펼쳐졌다.
 
 ### 1.2 연출 의도
-- **현실의 막막함 → 꿈꾸는 모험**: 전반부는 차갑고 조용한 실사, 문을 여는 순간 따뜻하고 반짝이는 게임 세계로 넘어간다. 이 전환이 트레일러 전체에서 가장 큰 감정 포인트다.
+- **현실의 막막함 → 꿈꾸는 모험**: 전체를 실사 영화 톤으로 찍는다. 전반부는 차갑고 조용한 새벽 자취방, 문을 여는 순간 따뜻한 골든아워의 캠퍼스로 넘어간다. 질감은 그대로 두고 빛과 색, 화면비만 바꿔서 전환을 만든다. 이 전환이 트레일러 전체에서 가장 큰 감정 포인트다. (2026-11-06 변경: 3D 게임 세계 룩은 AI 느낌이 강해서 폐기)
 - **얼굴보다 등**: 주인공은 남자 새내기 한 명으로 고정한다. 다만 결정적인 장면에서는 뒷모습과 과잠 등판을 보여 주어, 게임의 3인칭 뒷모습 시점과 엔딩의 과잠 수여식을 미리 암시한다.
 - **제목 장치**: 「너의 이름은」을 오마주한 제목 「너의 학과는」으로 끝난다. 마지막 과잠 등판의 학과명이 슬롯머신처럼 여러 학과로 바뀌다가 빈칸에서 멈추어, 관객에게 "너의 학과는?"이라는 질문을 남긴다.
 - **1초의 웃음**: 감동적인 질주 장면이 사실은 교수님에게 쫓기는 장면이었다는 1초짜리 반전으로 심사위원의 웃음을 끌어낸다.
@@ -34,7 +34,7 @@
 | 막 | 구간 | 감정 | 화면 | 음악 |
 |---|---|---|---|---|
 | 1막 고요 | 0:00–0:15 | 불안, 막막함 | 새벽 자취방, 실사, 차가운 청색 | 피아노만, 작게 |
-| 2막 설렘 | 0:15–0:27 | 기대, 두근거림 | 문을 열면 빛 → 게임 세계 광장 | 현악이 쌓이며 상승 |
+| 2막 설렘 | 0:15–0:27 | 기대, 두근거림 | 문을 열면 빛 → 골든아워 캠퍼스 광장 | 현악이 쌓이며 상승 |
 | 3막 폭발 | 0:27–0:47 | 희망, 청춘의 질주 | 학과 체험 몽타주 | 클라이맥스, 볼륨 최대 |
 | 4막 여운 | 0:47–1:00 | 벅참, 질문 | 노을 광장, 과잠 수여, 타이틀 | 순간 정적 → 피아노 아웃트로 |
 
@@ -46,11 +46,11 @@
 
 ### 2.1 막별 룩
 
-| 항목 | 1막 (실사) | 2~4막 (게임 세계) |
+| 항목 | 1막 (새벽 자취방) | 2~4막 (골든아워 캠퍼스) |
 |---|---|---|
-| 질감 | 35mm 필름, 약한 그레인, 얕은 심도 | 스타일라이즈드 3D, 부드러운 셀 셰이딩, 깨끗한 표면 |
-| 색 | 청회색, 새벽빛, 휴대폰 화면의 차가운 흰빛 | 따뜻한 골든아워, 하늘색과 복숭아색 하늘, 벚꽃 분홍 |
-| 빛 | 창문 역광, 어둠 속 작은 광원 | 강한 역광, 렌즈 플레어, 공중에 떠다니는 빛 입자 |
+| 질감 | 실사, 35mm 필름, 약한 그레인, 얕은 심도 | 실사, ARRI Alexa 영화 톤, Kodak 필름 그레인 (1막과 같은 질감) |
+| 색 | 청회색, 새벽빛, 휴대폰 화면의 차가운 흰빛 | 따뜻한 골든아워, 노을, 벚꽃 분홍 |
+| 빛 | 창문 역광, 어둠 속 작은 광원 | 강한 역광, 실제 렌즈 플레어, 빛줄기 속 먼지·꽃잎 (판타지 빛 효과는 쓰지 않음) |
 | 화면비 | 2.39:1 레터박스(위아래 검은 띠) | 문이 열리는 순간 띠가 걷히며 16:9 풀프레임 |
 | 카메라 | 정적, 느린 푸시인, 핸드헬드 미세 흔들림 | 크레인, 트래킹, 오비트, 슬로모션 |
 
@@ -59,7 +59,8 @@
 ### 2.2 공통 스타일 문구 (프롬프트 접미사)
 
 - 1막: `cinematic 35mm film still, shallow depth of field, soft film grain, cold blue dawn light, quiet melancholic mood, Korean university student's small studio room`
-- 2~4막: `stylized 3D animated film look, soft cel shading, warm golden hour, dreamy pastel sky with glowing clouds, floating light particles, cherry blossom petals, lens flare, hopeful youthful atmosphere, high detail`
+- 2~4막: `Photorealistic live-action cinematic film still, real actors, natural skin texture, real fabric, shot on ARRI Alexa with 35mm lens, Kodak film grain, golden hour, natural lens flare, shallow depth of field, not CGI, not 3D render, not illustration`
+- 영상 변환 접미사: `Photorealistic live-action, cinematic film look, natural motion, film grain, keep his face and jacket consistent, no text`
 
 ### 2.3 주인공: 팀 에셋 기준 (모든 컷의 중심)
 
@@ -93,7 +94,7 @@ white sneakers, no backpack
 ```
 
 **막별 변환**
-- 2~4막(게임 세계): 에셋의 셀 셰이딩 3D 렌더 질감을 그대로 쓴다. 에셋 이미지를 레퍼런스로 넣고 장면만 바꾼다.
+- 2~4막: 1막과 같이 실사 기준 이미지 `hero_live`를 인물 레퍼런스로 쓴다. 뒷모습 컷(S07, S12, S17)은 등판 레터링을 맞추기 위해 `hero-back-v2.png`를 함께 넣는다.
 - 1막(실사): 에셋을 레퍼런스로 넣고 "photorealistic live-action version of the same person"으로 실사화한 기준 이미지 `trailer/ref/hero_live.png`를 먼저 하나 만든다. 1막 컷은 이 실사 기준 이미지를 레퍼런스로 쓴다. 얼굴이 에셋과 닮지 않으면 1막은 손·실루엣·뒷모습 위주로 찍어 얼굴 노출을 줄인다.
 - 1막의 과잠: 합격 직후 새벽이므로, 과잠은 의자 등받이에 걸려 있다가 S04에서 주인공이 집어 들고 문으로 향한다. 문을 연 뒤(2막부터) 과잠을 입은 모습으로 등장해 "과잠 = 모험의 시작"을 보여 준다.
 
@@ -104,7 +105,7 @@ white sneakers, no backpack
 1. **글자는 편집에서 넣는다.** AI 영상은 한글을 깨뜨린다. 휴대폰 알림, 합격 통지서, 말풍선, 칠판 숫자, 등판 학과명 줄은 모두 빈 면으로 생성하고 편집 툴에서 합성한다. 등판의 "INCHEON NATIONAL UNIVERSITY"와 팔의 "27"은 에셋 레퍼런스 덕분에 깨끗하게 나오면 그대로 쓰고, 깨지면 합성으로 덮는다.
 2. **한 컷 = 한 동작.** 컷당 5초 안팎으로 생성하고, 동작은 하나만 지시한다.
 3. **키프레임 이미지 먼저.** 모든 컷은 이미지로 먼저 만들어 구도를 확정한 뒤 영상으로 변환한다(image-to-video).
-4. **컷마다 3개 이상 생성해서 고른다.** 손가락, 얼굴 왜곡이 있는 테이크는 버린다.
+4. **컷마다 1회만 생성한다** (크레딧 절약). 손가락이나 얼굴이 왜곡된 컷만 다시 만든다. 영상은 Seedance 2.5, 720p, 5초, 오디오 없음으로 만든다.
 5. 특정 영화의 장면을 그대로 재현하지 않는다. 빛과 하늘의 분위기만 참고한다.
 
 ---
@@ -210,10 +211,10 @@ Hopeful, dreamy, youthful, sparkling. 60 seconds. Instrumental.
 - [V] 과잠을 쥔 채 손잡이를 돌림, 문틈 빛이 점점 강해짐
 - 나레이션 N4 "그래서, 문을 열었다."
 
-### 2막 설렘 (0:15–0:27) · 게임 세계 진입 · 레터박스 해제
+### 2막 설렘 (0:15–0:27) · 캠퍼스 진입 · 레터박스 해제
 
 **S05 · 0:15–0:18 · 빛 속으로 (전환 컷)**
-- [I] 시작 프레임: S04의 문이 열린 상태. 끝 프레임: 스타일라이즈드 3D 광장 전경
+- [I] 시작 프레임: S04의 문이 열린 상태. 끝 프레임: S06 실사 광장 항공샷
 - [V] 카메라가 문틈의 빛 속으로 빠르게 돌진 → 화이트아웃 → 광장 상공으로 빠져나옴. Higgsfield에서 시작·끝 프레임을 지정하는 방식으로 생성한다. 실패하면 두 컷을 화이트 플래시로 잇는다.
 - 편집: 이 순간 레터박스가 위아래로 열린다.
 
@@ -223,13 +224,13 @@ Hopeful, dreamy, youthful, sparkling. 60 seconds. Instrumental.
 - 참고: 인천대 12호관 앞 광장 사진의 구도(붉은 벽돌 지그재그 바닥, 물결 벤치)를 레퍼런스 이미지로 함께 넣는다.
 
 **S07 · 0:22–0:25 · 3인칭 뒷모습 트래킹**
-- [I] (레퍼런스: `hero-back-v2.png`, `plaza-01.jpg`) `Over-the-shoulder third-person view behind the 3D freshman character (the exact same character as the reference, back lettering INCHEON NATIONAL UNIVERSITY visible), walking into the bustling plaza, students from different majors doing activities: one soldering a small robot, one sketching on an easel, one writing on a chalkboard` + 2~4막 접미사
+- [I] (레퍼런스: `hero-back-v2.png`, `plaza-01.jpg`) `Over-the-shoulder third-person view behind the live-action freshman (the exact same character as the reference, back lettering INCHEON NATIONAL UNIVERSITY visible), walking into the bustling plaza, students from different majors doing activities: one soldering a small robot, one sketching on an easel, one writing on a chalkboard` + 2~4막 접미사
 - [V] 주인공 뒤를 따라가는 트래킹, 게임의 3인칭 시점과 같은 높이
 - [T] 학생들 머리 위 말풍선: "서버 또 터졌네…", "오늘도 야작각이네…", "증명 끝… 아 아니네"
 - SFX 말풍선 비프음 "띠리리"
 
 **S08 · 0:25–0:27 · 하늘을 올려다봄**
-- [I] `Low angle shot of the 3D freshman looking up at a dreamy sky full of glowing clouds and light streaks, petals swirling around him, gentle smile` + 2~4막 접미사
+- [I] `Low angle shot of the the live-action freshman looking up at a dreamy sky full of glowing clouds and light streaks, petals swirling around him, gentle smile` + 2~4막 접미사
 - [V] 로우앵글 오비트 반 바퀴
 - 나레이션 N5 "이 세계 어딘가에, 내 이야기가 있을까." (0:23부터 S07 위로 시작)
 
@@ -238,7 +239,7 @@ Hopeful, dreamy, youthful, sparkling. 60 seconds. Instrumental.
 컷 길이는 박자에 맞춰 2~3초로 빠르게 자른다. 각 컷에는 학과를 상징하는 "마법 같은 순간"을 하나씩 넣는다.
 
 **S09 · 0:27–0:30 · 전자공학부**
-- [I] `3D freshman and a senior engineering student soldering a small delivery robot with a lidar sensor on its head, bright sparks flying, the lidar emits rotating blue laser lines that sweep across the plaza` + 2~4막 접미사
+- [I] `the live-action freshman and a senior engineering student soldering a small delivery robot with a lidar sensor on its head, bright sparks flying, the lidar emits rotating blue laser lines that sweep across the plaza` + 2~4막 접미사
 - [V] 불꽃이 튀는 순간 슬로모션, 라이다 레이저가 화면을 가로지름
 
 **S10 · 0:30–0:33 · 디자인학부**
@@ -306,7 +307,7 @@ Hopeful, dreamy, youthful, sparkling. 60 seconds. Instrumental.
 ## 6. 제작 워크플로
 
 ```
-① 캐릭터 시트(실사·3D) → ② 키프레임 이미지 18장 → ③ 영상 변환(컷당 3테이크)
+① 실사 기준 이미지 → ② 키프레임 이미지 18장 → ③ 영상 변환(컷당 1테이크, 720p)
    → ④ 나레이션 생성 → ⑤ 음악 구간 편집 → ⑥ 러프컷 → ⑦ 텍스트·SFX·색보정 → ⑧ 최종 출력
 ```
 
@@ -376,7 +377,7 @@ trailer/
 | 항목 | 결정 |
 |---|---|
 | 타이틀 | 「너의 학과는」 |
-| 비주얼 | 실사(1막) → 스타일라이즈드 3D 게임 세계(2~4막) |
+| 비주얼 | 전체 실사 영화 톤. 1막 새벽 청색 → 2~4막 골든아워 (3D 게임 룩은 AI 느낌이 강해 폐기, 2026-11-06) |
 | 주인공 | 팀 에셋 `hero-*-v2.png`가 기준. 1막 실사 이미지는 이 에셋으로 AI 생성 |
 | 나레이션 | 주인공 1인칭 독백, ElevenLabs로 생성 |
 | 감정 곡선 | 고요 → 설렘 → 폭발 → 여운 |
