@@ -3,7 +3,7 @@ import { playSfx } from '../../audio/sfx';
 import { getSkill } from '../../data/skills';
 import { useGameStore } from '../../stores/useGameStore';
 import { useSkillStore } from '../../stores/useSkillStore';
-import { goToNextQuest } from '../../systems/nextQuest';
+import { announceNextQuest } from '../../systems/nextQuest';
 import '../hud/hud.css';
 import './overlays.css';
 
@@ -19,7 +19,7 @@ export function SkillAcquired() {
     if (closed.current) return;
     closed.current = true;
     setPhase('explore');
-    goToNextQuest();
+    announceNextQuest();
   };
 
   useEffect(() => {
