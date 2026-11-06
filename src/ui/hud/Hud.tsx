@@ -22,12 +22,6 @@ function MuteButton() {
 }
 
 function ControlsToast() {
-  const [visible, setVisible] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(false), CONTROLS_TOAST_MS);
-    return () => clearTimeout(t);
-  }, []);
-  if (!visible) return null;
   return (
     <div className="controls-toast ui-panel">WASD 이동 · Shift 달리기 · 마우스 시점 · E/클릭 대화 · Tab 도감</div>
   );
@@ -36,10 +30,15 @@ function ControlsToast() {
 export function Hud() {
   const phase = useGameStore((s) => s.phase);
   // the controls toast appears once, after the first time the player reaches explore
-  const [seenExplore, setSeenExplore] = useState(false);
+  const [toast, setToast] = useState<'pending' | 'shown' | 'done'>('pending');
   useEffect(() => {
-    if (phase === 'explore') setSeenExplore(true);
-  }, [phase]);
+    if (phase === 'explore' && toast === 'pending') setToast('shown');
+  }, [phase, toast]);
+  useEffect(() => {
+    if (toast !== 'shown') return;
+    const t = setTimeout(() => setToast('done'), CONTROLS_TOAST_MS);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     const off = installAudioUnlock();
@@ -61,7 +60,7 @@ export function Hud() {
         <NotificationStack />
       </div>
       <MuteButton />
-      {seenExplore && <ControlsToast />}
+      {toast === 'shown' && phase === 'explore' && <ControlsToast />}
     </div>
   );
 }

@@ -19,7 +19,10 @@ import { SkillAcquired } from './SkillAcquired';
 import { SkillDex } from './SkillDex';
 import './overlays.css';
 
-const setPhase = (p: GamePhase) => useGameStore.getState().setPhase(p);
+const setPhase = (p: GamePhase) => {
+  if (p !== 'dialogue') useDialogueStore.getState().reset();
+  useGameStore.getState().setPhase(p);
+};
 
 const actions: [string, () => void][] = [
   ['탐험', () => setPhase('explore')],
