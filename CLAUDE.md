@@ -6,7 +6,7 @@ Spec: `plan.md` (Part 1 PRD, 2.4 contract, Part 3 track briefs, Part 4 tests). U
 
 ```bash
 npm run dev            # http://localhost:5173  (?debug=1, ?minigame=dial|trace|fillBlank|ordering-word|ordering-code, ?ui-preview=1)
-npx tsc -b --noEmit    # type check (strict, no any)
+npx tsc -p tsconfig.app.json --noEmit   # type check (strict, no any)
 npx vitest run         # unit + component (tests/unit, tests/component)
 npx playwright test    # e2e (tests/e2e), starts the dev server itself
 ```

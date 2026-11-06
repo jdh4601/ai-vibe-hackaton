@@ -4,6 +4,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
+  // per-checkout cache: worktrees share node_modules via a junction
+  cacheDir: '.vite',
   test: {
     globals: true,
     environment: 'jsdom',
