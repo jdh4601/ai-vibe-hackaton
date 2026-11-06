@@ -19,7 +19,8 @@ import { playerLive } from './playerLive';
 const CUTSCENE_MS = 3000;
 const SPREAD = (Math.PI * 0.9) / 2; // half-angle of the semicircle around the player's forward direction
 const STEP_FORWARD_S = 1.5;
-const STEP_DISTANCE = 2.0;
+const STEP_DISTANCE = 2.6;
+const STEP_SIDE = 0.9; // the stepping NPC stands slightly aside so the camera still sees the player's back
 const JACKET_SWAP_S = 5.2;
 const ORBIT_START_S = 6;
 const ORBIT_END_S = 10;
@@ -148,8 +149,8 @@ export function EndingStage() {
         }
         const k = easeInOut(clamp01(tC / STEP_FORWARD_S));
         const [dx, dz] = dirOf(s.yaw);
-        const tx = s.center[0] + dx * STEP_DISTANCE;
-        const tz = s.center[2] + dz * STEP_DISTANCE;
+        const tx = s.center[0] + dx * STEP_DISTANCE - dz * STEP_SIDE;
+        const tz = s.center[2] + dz * STEP_DISTANCE + dx * STEP_SIDE;
         const x = s.stepFrom[0] + (tx - s.stepFrom[0]) * k;
         const z = s.stepFrom[2] + (tz - s.stepFrom[2]) * k;
         npcStage.poses.set(npc.id, { x, z, rotationY: yawToward([x, 0, z], s.center) });

@@ -15,6 +15,7 @@ const bubble: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 8,
+  width: 'max-content',
   maxWidth: 220,
   padding: '8px 12px',
   borderRadius: 16,

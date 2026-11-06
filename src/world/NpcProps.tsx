@@ -153,6 +153,37 @@ function Beaker() {
   );
 }
 
+function SignBoard() {
+  return (
+    <group>
+      <Part m={M.wood} position={[0, 0.6, 0.02]} scale={[0.06, 1.2, 0.06]} />
+      <Part m={M.white} position={[0, 1.1, 0]} scale={[0.8, 0.55, 0.05]} />
+      <Part m={M.blue} position={[0, 1.2, -0.03]} scale={[0.6, 0.08, 0.01]} />
+      <Part m={M.red} position={[-0.1, 1.0, -0.03]} scale={[0.4, 0.06, 0.01]} />
+    </group>
+  );
+}
+
+function Crates() {
+  return (
+    <group>
+      <Part m={M.wood} position={[0, 0.2, 0]} scale={[0.6, 0.4, 0.5]} />
+      <Part m={M.yellow} position={[0.05, 0.55, 0]} scale={[0.45, 0.3, 0.4]} />
+      <Part m={M.white} position={[-0.3, 0.1, 0.45]} scale={[0.3, 0.2, 0.3]} />
+    </group>
+  );
+}
+
+function PaperCups() {
+  return (
+    <Table>
+      {[-0.3, -0.1, 0.1, 0.3].map((x) => (
+        <Part key={x} m={M.white} position={[x, 0.85, 0]} scale={[0.1, 0.18, 0.1]} g="cyl" />
+      ))}
+    </Table>
+  );
+}
+
 function Generic() {
   return <Part m={M.wood} position={[0, 0.2, 0]} scale={[0.4, 0.4, 0.4]} />;
 }
@@ -166,6 +197,22 @@ const PROPS: Record<string, () => React.JSX.Element> = {
   books: Books,
   laptop: Laptop,
   beaker: Beaker,
+  paperCups: PaperCups,
+  studySign: SignBoard,
+  poster: SignBoard,
+  board: SignBoard,
+  slides: SignBoard,
+  calendar: SignBoard,
+  scrolls: SignBoard,
+  parcelBox: Crates,
+  folders: Crates,
+  ledger: Crates,
+  crumpledPapers: Crates,
+  tools: Crates,
+  router: Laptop,
+  controller: Laptop,
+  camera: Laptop,
+  labCoat: SignBoard,
 };
 
 // Slots around the NPC in its local frame ([x, z]); the NPC itself stands at the origin facing -z.
@@ -174,6 +221,8 @@ const SLOTS: [number, number][] = [
   [-1.3, 0.2],
   [1.0, 1.3],
   [-1.0, 1.3],
+  [0, 2.0],
+  [2.0, 1.0],
 ];
 
 export function NpcProps({ keys }: { keys: string[] }) {
