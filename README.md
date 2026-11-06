@@ -38,14 +38,32 @@ Vite · React · TypeScript · Three.js (React Three Fiber, drei) · Rapier · e
 
 ## 실행 방법
 
-> 구현이 시작되면 채워집니다.
-
 ```bash
 npm install
-npm run dev        # 개발 서버
+npm run dev        # 개발 서버 http://localhost:5173
+npm run build && npm run preview   # 시연용 로컬 빌드 (오프라인 동작)
 npm test           # 단위·컴포넌트 테스트
 npm run e2e        # E2E 테스트
 ```
+
+### 시연용 주소 옵션
+
+| 주소 | 용도 |
+|---|---|
+| `/?debug=1` | 디버그 키 활성화 (아래 표) |
+| `/?quality=low` | 그림자·후처리 끄기 (저사양 노트북) |
+| `/?minigame=dial` | 미니게임 단독 실행 (`dial`, `trace`, `fillBlank`, `ordering-word`, `ordering-code`) |
+| `/?ui-preview=1` | 모든 UI 화면 미리보기 |
+
+### 디버그 키 (`?debug=1`)
+
+| 키 | 동작 |
+|---|---|
+| F1 | 오프닝 건너뛰기 |
+| F2 | 다음 퀘스트 NPC 앞으로 이동 |
+| F3 | 현재 미니게임 즉시 성공 |
+| F4 | 스킬 5개 모두 지급 (엔딩 직행) |
+| F6 / F7 / F8 | 교수님 납치 / 과제 통보 / 간식 나눔 즉시 발생 |
 
 ## 조작법
 
