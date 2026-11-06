@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { installDevHooks } from './debug/devHooks';
+import type { GamePhase } from './game/types';
 import { DebugKeys } from './debug/DebugKeys';
 import { useGameStore } from './stores/useGameStore';
 import { useQuestStore } from './stores/useQuestStore';
@@ -23,6 +24,9 @@ import { NpcLayer } from './world/NpcLayer';
 import { Player } from './world/Player';
 
 const params = new URLSearchParams(window.location.search);
+
+// the HUD gets out of the way during the opening and every ending scene
+const NO_HUD_PHASES: ReadonlySet<GamePhase> = new Set(['opening', 'endingCutscene', 'endingSelect', 'jacketCeremony', 'credits']);
 
 function ActiveMinigame() {
   const questId = useGameStore((s) => s.activeQuestId);
@@ -63,7 +67,7 @@ function Game() {
       </GameCanvas>
       <SystemsTicker />
       <DebugKeys />
-      {phase !== 'opening' && phase !== 'credits' && <Hud />}
+      {!NO_HUD_PHASES.has(phase) && <Hud />}
       <DialogueBox />
       {phase === 'minigame' && <ActiveMinigame />}
       {phase === 'skillAcquired' && <SkillAcquired />}

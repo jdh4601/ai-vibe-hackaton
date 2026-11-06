@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import { solveOrdering } from './helpers';
 
 const KINDS = ['dial', 'trace', 'fillBlank', 'ordering-word', 'ordering-code'] as const;
 
@@ -17,26 +17,7 @@ for (const kind of KINDS) {
   });
 }
 
-async function chipIds(page: Page) {
-  return page.locator('[data-testid="chip"]').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.id ?? ''));
-}
 
-async function solveOrdering(page: Page, answer: string[]) {
-  for (let target = 0; target < answer.length; target++) {
-    const from = (await chipIds(page)).indexOf(answer[target]);
-    if (from === target) continue;
-    await page.waitForTimeout(300); // let the previous drop settle
-    await page.locator('[data-testid="chip"]').nth(from).focus();
-    await page.keyboard.press('Space');
-    await page.waitForTimeout(250); // the sensor attaches its key listener after activation
-    for (let k = 0; k < from - target; k++) {
-      await page.keyboard.press('ArrowLeft');
-      await page.waitForTimeout(200); // let dnd-kit re-measure between moves
-    }
-    await page.keyboard.press('Space');
-    await expect.poll(async () => (await chipIds(page))[target]).toBe(answer[target]);
-  }
-}
 
 test('orderingWord_keyboardSolve_showsSuccess', async ({ page }, info) => {
   await page.goto('/?minigame=ordering-word');
