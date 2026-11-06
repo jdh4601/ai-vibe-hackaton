@@ -2,10 +2,12 @@ import { create } from 'zustand';
 import { SPAWN_POINT, STAMINA_MAX } from '../game/config';
 import type { JacketSpec, MoveMode, Vec3 } from '../game/types';
 
+// Matches assets/characters/hero/hero-*-v2.png (teammate-approved design):
+// royal blue body, white sleeves, blue/white striped ribbing, "27" on the wearer's right sleeve only.
 export const START_JACKET: JacketSpec = {
-  bodyColor: '#1F2A44',
+  bodyColor: '#1E3FCF',
   sleeveColor: '#FFFFFF',
-  backText: 'INU 자유전공학부 27',
+  backText: 'INCHEON NATIONAL UNIVERSITY',
 };
 
 export interface PlayerState {
