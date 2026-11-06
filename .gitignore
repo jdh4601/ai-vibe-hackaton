@@ -1,0 +1,4 @@
+# Trailer media (large binaries, kept local)
+trailer/shots/
+trailer/frames/
+.DS_Store
