@@ -43,11 +43,19 @@ function nearest(p: Point, set: Point[]): number {
   return best;
 }
 
+/** Like scoreTrace, but strokes are densified separately so pen lifts are not bridged. */
+export function scoreTraceStrokes(strokes: Point[][], path: Point[], opts: TraceOptions): TraceScore {
+  return scoreDense(strokes.flatMap((s) => densify(s)), path, opts);
+}
+
 export function scoreTrace(drawn: Point[], path: Point[], opts: TraceOptions): TraceScore {
+  return scoreDense(densify(drawn), path, opts);
+}
+
+function scoreDense(d: Point[], path: Point[], opts: TraceOptions): TraceScore {
   const coverageRadius = opts.coverageRadius ?? 12;
   const deviationRadius = opts.deviationRadius ?? 25;
-  if (drawn.length === 0 || path.length === 0) return { coverage: 0, deviation: 1, passed: false };
-  const d = densify(drawn);
+  if (d.length === 0 || path.length === 0) return { coverage: 0, deviation: 1, passed: false };
   const covered = path.filter((p) => nearest(p, d) <= coverageRadius).length;
   const off = d.filter((p) => nearest(p, path) >= deviationRadius).length;
   const coverage = covered / path.length;
