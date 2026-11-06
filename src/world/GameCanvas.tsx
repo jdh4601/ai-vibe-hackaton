@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { KeyboardControls, Sky } from '@react-three/drei';
 import { Bloom, EffectComposer, SMAA } from '@react-three/postprocessing';
@@ -21,14 +22,19 @@ export const KEYBOARD_MAP = [
 
 const params = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search);
 const LOW_QUALITY = params.get('quality') === 'low';
-const TOP_CAM = params.get('cam') === 'top';
+const CAM = params.get('cam'); // debug cameras: 'top' | 'fountain'
 
-// Debug/screenshot camera (?cam=top): overrides the follow camera each frame. Mounted after children.
+// Debug/screenshot camera (?cam=top|fountain): overrides the follow camera each frame. Mounted after children.
 function TopCam() {
   const camera = useThree((s) => s.camera);
   useFrame(() => {
-    camera.position.set(0, 150, 38);
-    camera.lookAt(0, 0, -12);
+    if (CAM === 'fountain') {
+      camera.position.set(0, 1.8, 6);
+      camera.lookAt(0, 1.6, -20);
+    } else {
+      camera.position.set(0, 150, 38);
+      camera.lookAt(0, 0, -12);
+    }
   });
   return null;
 }
@@ -45,7 +51,7 @@ export function GameCanvas({ children }: { children?: ReactNode }) {
         camera={{ fov: 55, near: 0.1, far: 1200, position: [0, 4, 56] }}
       >
         <fog attach="fog" args={['#d4e6f2', 140, 700]} />
-        <Sky sunPosition={[60, 40, -30]} turbidity={4} rayleigh={1.2} />
+        <Sky sunPosition={[60, 25, 30]} turbidity={2} rayleigh={2} mieCoefficient={0.003} mieDirectionalG={0.7} />
         <hemisphereLight args={['#dfefff', '#c9a27a', 0.7]} />
         <directionalLight
           position={[40, 60, 20]}
@@ -72,12 +78,12 @@ export function GameCanvas({ children }: { children?: ReactNode }) {
           <Backdrop />
         </Suspense>
         {!LOW_QUALITY && (
-          <EffectComposer multisampling={0}>
+          <EffectComposer multisampling={0} frameBufferType={THREE.UnsignedByteType}>
             <Bloom intensity={0.3} luminanceThreshold={0.9} mipmapBlur />
             <SMAA />
           </EffectComposer>
         )}
-        {TOP_CAM && <TopCam />}
+        {CAM && <TopCam />}
       </Canvas>
     </KeyboardControls>
   );
