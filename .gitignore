@@ -29,3 +29,10 @@ playwright-report
 coverage
 .vite
 .shots
+
+# Trailer media (large binaries, kept local)
+trailer/shots/
+trailer/frames/
+trailer/vo/
+trailer/music/
+trailer/edit/
