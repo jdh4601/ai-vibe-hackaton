@@ -1,16 +1,10 @@
+import schoolLogo from '../../../assets/logo/logo.png';
 import '../hud/hud.css';
 import './overlays.css';
 
-// Fictional emblem (wave + sun over a shield) - deliberately not the real university logo.
+// University seal from assets/logo (uploaded by the team for the admission letter).
 export function Emblem() {
-  return (
-    <svg className="emblem" viewBox="0 0 100 100" aria-hidden="true">
-      <path d="M50 4 L90 18 V50 C90 74 72 90 50 97 C28 90 10 74 10 50 V18 Z" fill="#1d2a4f" stroke="#d8b24a" strokeWidth="3" />
-      <circle cx="50" cy="38" r="13" fill="#f6c945" />
-      <path d="M18 62 Q30 52 42 62 T66 62 T86 60" fill="none" stroke="#8fd0ff" strokeWidth="5" strokeLinecap="round" />
-      <path d="M22 76 Q34 66 46 76 T70 76 T80 74" fill="none" stroke="#5aa9e6" strokeWidth="5" strokeLinecap="round" />
-    </svg>
-  );
+  return <img className="emblem" src={schoolLogo} alt="인천대학교 로고" />;
 }
 
 export function AdmissionLetter({ onNext }: { onNext: () => void }) {
