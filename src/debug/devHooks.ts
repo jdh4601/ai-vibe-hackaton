@@ -1,4 +1,3 @@
-import { NPCS } from '../data/npcs';
 import { QUESTS } from '../data/quests';
 import type { GameDevHooks, GameSnapshot, QuestMachineState, RandomEventId, Vec3 } from '../game/types';
 import { initialQuestState, transition } from '../logic/questMachine';
@@ -8,8 +7,8 @@ import { useNotificationStore } from '../stores/useNotificationStore';
 import { usePlayerStore } from '../stores/usePlayerStore';
 import { ENDING_UNLOCK_NOTICE, useQuestStore } from '../stores/useQuestStore';
 import { useSkillStore } from '../stores/useSkillStore';
+import { nextQuestSpot } from '../systems/nextQuest';
 
-const FRONT_DISTANCE_M = 2.5;
 
 function skipOpening(): void {
   useGameStore.getState().setPhase('explore');
@@ -20,12 +19,8 @@ function teleportTo(position: Vec3): void {
 }
 
 function teleportToNextQuest(): void {
-  const { quests } = useQuestStore.getState();
-  const next = [...QUESTS].sort((a, b) => a.order - b.order).find((q) => quests[q.id].status !== 'cleared');
-  const npc = next && NPCS.find((n) => n.id === next.npcId);
-  if (!npc) return;
-  const [x, , z] = npc.position;
-  teleportTo([x + Math.sin(npc.rotationY) * FRONT_DISTANCE_M, 1, z + Math.cos(npc.rotationY) * FRONT_DISTANCE_M]);
+  const spot = nextQuestSpot(useQuestStore.getState().quests);
+  if (spot) teleportTo(spot.position);
 }
 
 function solveMinigame(): void {
