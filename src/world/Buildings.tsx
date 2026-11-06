@@ -1,3 +1,4 @@
+import { FacadeDetails } from './env/FacadeDetails';
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
@@ -9,9 +10,9 @@ function facadeStyle(def: BuildingDef, cols: number, rows: number): FacadeOption
     case 'b12': // light grey with a dark glass strip tower on one side
       return { wall: '#c4c8ca', glass: '#8fb0c4', cols, rows, winW: 0.78, winH: 0.5, darkRight: 0.22 };
     case 'library': // greenish glass with horizontal louvers
-      return { wall: '#8db3a6', glass: '#bfe0d4', cols: Math.max(2, cols - 2), rows, winW: 0.92, winH: 0.7, frame: 'rgba(30,60,60,0.5)', louvers: true };
+      return { wall: '#859491', glass: '#849e9d', cols: Math.max(2, cols - 2), rows, winW: 0.92, winH: 0.7, frame: 'rgba(30,60,60,0.5)', louvers: true };
     default: // beige stone with regular punched windows
-      return { wall: def.color, glass: '#7f9cb0', cols, rows, winW: 0.4, winH: 0.46 };
+      return { wall: def.color, glass: '#7f9cb0', cols, rows, winW: 0.66, winH: 0.55 };
   }
 }
 
@@ -42,6 +43,7 @@ function Building({ def }: { def: BuildingDef }) {
         <boxGeometry args={[def.w + 0.5, 0.5, def.d + 0.5]} />
         <meshStandardMaterial color={isGlass ? '#4f6670' : '#7b7f84'} />
       </mesh>
+      <FacadeDetails def={def} />
       {/* entrance canopy */}
       <mesh position={[0, 3.4, def.d / 2 + 1.2]} castShadow>
         <boxGeometry args={[Math.min(10, def.w * 0.4), 0.3, 2.4]} />
@@ -71,8 +73,8 @@ function Building({ def }: { def: BuildingDef }) {
         </mesh>
       )}
       {sign && (
-        <mesh position={[-def.w * 0.1, h * 0.82, def.d / 2 + 0.06]}>
-          <planeGeometry args={[7, 7]} />
+        <mesh position={[def.w * 0.4, h * 0.84, def.d / 2 + 0.06]}>
+          <planeGeometry args={[4.6, 4.6]} />
           <meshBasicMaterial map={sign} transparent toneMapped={false} />
         </mesh>
       )}
