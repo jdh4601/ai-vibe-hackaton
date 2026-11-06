@@ -3,33 +3,71 @@ import * as THREE from 'three';
 import { Instance, Instances } from '@react-three/drei';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { makeEnvTexture } from './env/textures';
 import { ENDING_POINT, STAIR_CANOPY, WAVE_BENCH } from '../game/config';
 
-// Stainless twisted ribbon bench: a flattened tube that undulates and twists.
+let envTex: THREE.CanvasTexture | null = null;
+function getEnv(): THREE.CanvasTexture {
+  envTex ??= makeEnvTexture();
+  return envTex;
+}
+
+// Flat ribbon swept along a curve with a twist about its tangent.
+function ribbonGeometry(curve: THREE.Curve<THREE.Vector3>, segs: number, width: number, thick: number, twist: (u: number) => number): THREE.BufferGeometry {
+  const pos: number[] = [];
+  const idx: number[] = [];
+  const up = new THREE.Vector3(0, 1, 0);
+  const corners: [number, number][] = [[-1, 1], [1, 1], [1, -1], [-1, -1]];
+  for (let i = 0; i <= segs; i++) {
+    const u = i / segs;
+    const p = curve.getPointAt(u);
+    const t = curve.getTangentAt(u);
+    const side = new THREE.Vector3().crossVectors(t, up).normalize();
+    const nrm = new THREE.Vector3().crossVectors(side, t).normalize();
+    const a = twist(u);
+    const s2 = side.clone().multiplyScalar(Math.cos(a)).addScaledVector(nrm, Math.sin(a));
+    const n2 = nrm.clone().multiplyScalar(Math.cos(a)).addScaledVector(side, -Math.sin(a));
+    for (const [cx, cy] of corners) {
+      const q = p.clone().addScaledVector(s2, cx * width * 0.5).addScaledVector(n2, cy * thick * 0.5);
+      pos.push(q.x, q.y, q.z);
+    }
+    if (i < segs) {
+      for (let c = 0; c < 4; c++) {
+        const a0 = i * 4 + c;
+        const a1 = i * 4 + ((c + 1) % 4);
+        idx.push(a0, a1, a0 + 4, a1, a1 + 4, a0 + 4);
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+// Stainless twisted ribbon bench: two thick glossy ribbons that undulate and twist.
 function WaveBench() {
   const { x, z, w, d } = WAVE_BENCH;
   const geo = useMemo(() => {
     const parts: THREE.BufferGeometry[] = [];
     for (let k = 0; k < 2; k++) {
       const pts: THREE.Vector3[] = [];
-      for (let i = 0; i <= 80; i++) {
-        const u = i / 80;
-        pts.push(new THREE.Vector3((u - 0.5) * w, 0.75 + Math.sin(u * Math.PI * 5 + k * 1.6) * 0.5, Math.sin(u * Math.PI * 3 + k) * 0.35 * (k ? 1 : -1)));
+      for (let i = 0; i <= 60; i++) {
+        const u = i / 60;
+        pts.push(new THREE.Vector3((u - 0.5) * w, 0.8 + Math.sin(u * Math.PI * 6 + k * 1.6) * 0.55, Math.sin(u * Math.PI * 3 + k) * 0.5 * (k ? 1 : -1)));
       }
-      const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 200, 0.28, 3, false);
-      g.scale(1, 0.55, 1.6); // flatten into a ribbon
-      parts.push(g.toNonIndexed());
+      parts.push(ribbonGeometry(new THREE.CatmullRomCurve3(pts), 240, 1.0, 0.16, (u) => u * Math.PI * 8 + k * 1.2).toNonIndexed());
     }
-    return mergeGeometries(parts);
+    const g = mergeGeometries(parts);
+    g.computeVertexNormals();
+    return g;
   }, [w]);
+  const env = getEnv();
   return (
     <group position={[x, 0, z]}>
       <mesh geometry={geo} castShadow receiveShadow>
-        <meshStandardMaterial color="#e4e9ee" metalness={0.55} roughness={0.25} flatShading />
-      </mesh>
-      <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w * 0.9, 0.12, d * 0.4]} />
-        <meshStandardMaterial color="#9aa1a8" metalness={0.5} roughness={0.4} />
+        <meshStandardMaterial color="#c9d0d6" metalness={0.9} roughness={0.25} envMap={env} envMapIntensity={1.0} side={THREE.DoubleSide} />
       </mesh>
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[w / 2, 0.6, d / 4]} position={[0, 0.6, 0]} />
@@ -38,54 +76,74 @@ function WaveBench() {
   );
 }
 
-// Light steel frame with a flat dark solar-panel roof over a descending stair.
+// Light steel frame with a slightly tilted dark solar-panel roof over a descending stair.
 function StairCanopy() {
   const { x, z, w, d } = STAIR_CANOPY;
   const steps = [0, 1, 2, 3, 4, 5];
+  const postXs = [-w / 2 + 0.15, w / 2 - 0.15];
+  const postZs = [-d / 2 + 0.15, 0, d / 2 - 0.15];
+  const frameMat = <meshStandardMaterial color="#dfe3e6" metalness={0.6} roughness={0.35} envMap={getEnv()} />;
+  const roofW = w + 0.8;
+  const roofD = d + 0.8;
   return (
     <group position={[x, 0, z]}>
-      <mesh position={[0, 0.04, 0]} receiveShadow>
-        <boxGeometry args={[w - 1, 0.08, d - 1]} />
-        <meshStandardMaterial color="#1f2328" />
-      </mesh>
-      {/* stairs descending toward -z (north) */}
-      {steps.map((s) => (
-        <mesh key={s} position={[0, 0.1 + 0.02 * s, d / 2 - 1 - s * 0.7]} receiveShadow>
-          <boxGeometry args={[w - 2, 0.12, 0.62]} />
-          <meshStandardMaterial color={s % 2 ? '#c8c8c2' : '#aeaea8'} />
-        </mesh>
-      ))}
-      {[
-        [-1, -1],
-        [1, -1],
-        [-1, 1],
-        [1, 1],
-      ].map(([sx, sz], i) => (
-        <mesh key={i} position={[sx * (w / 2 - 0.15), 1.3, sz * (d / 2 - 0.15)]} castShadow>
-          <boxGeometry args={[0.14, 2.6, 0.14]} />
-          <meshStandardMaterial color="#d6dade" metalness={0.5} roughness={0.35} />
-        </mesh>
-      ))}
-      <mesh position={[0, 2.68, 0]} rotation-x={0.06} castShadow>
-        <boxGeometry args={[w + 0.8, 0.14, d + 0.8]} />
-        <meshStandardMaterial color="#1c2733" metalness={0.5} roughness={0.25} />
-      </mesh>
-      {/* handrails */}
+      {/* light concrete side walls of the stairwell */}
       {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * (w / 2 - 0.9), 0.6, 0]}>
-          <boxGeometry args={[0.06, 0.06, d - 1]} />
-          <meshStandardMaterial color="#d4a63a" />
+        <mesh key={s} position={[s * (w / 2 - 0.5), 0.35, 0]} receiveShadow castShadow>
+          <boxGeometry args={[0.3, 0.7, d - 0.4]} />
+          <meshStandardMaterial color="#c9cbc8" />
+        </mesh>
+      ))}
+      {/* steps descend toward -z (north): high at the south end, low at the north end */}
+      {steps.map((s) => (
+        <mesh key={s} position={[0, 0.58 - s * 0.1, d / 2 - 0.7 - s * 0.7]} receiveShadow>
+          <boxGeometry args={[w - 1.5, 0.12, 0.66]} />
+          <meshStandardMaterial color={s % 2 ? '#d6d6d0' : '#b9b9b3'} />
+        </mesh>
+      ))}
+      {/* dark stairwell opening at the low end */}
+      <mesh position={[0, 0.3, -d / 2 + 0.2]}>
+        <boxGeometry args={[w - 1.5, 0.6, 0.1]} />
+        <meshStandardMaterial color="#2a2f34" />
+      </mesh>
+      {postXs.flatMap((sx) =>
+        postZs.map((sz) => (
+          <mesh key={`${sx}_${sz}`} position={[sx, 1.4, sz]} castShadow>
+            <boxGeometry args={[0.1, 2.8, 0.1]} />
+            {frameMat}
+          </mesh>
+        )),
+      )}
+      {/* roof frame edges and tilted panel */}
+      <group position={[0, 2.85, 0]} rotation-x={0.1}>
+        {[-1, 1].map((s) => (
+          <mesh key={`a${s}`} position={[s * roofW / 2, 0, 0]} castShadow>
+            <boxGeometry args={[0.1, 0.16, roofD]} />
+            {frameMat}
+          </mesh>
+        ))}
+        {[-1, 1].map((s) => (
+          <mesh key={`b${s}`} position={[0, 0, s * roofD / 2]} castShadow>
+            <boxGeometry args={[roofW, 0.16, 0.1]} />
+            {frameMat}
+          </mesh>
+        ))}
+        <mesh position={[0, 0.02, 0]} castShadow>
+          <boxGeometry args={[roofW - 0.1, 0.05, roofD - 0.1]} />
+          <meshStandardMaterial color="#1e3050" metalness={0.5} roughness={0.3} envMap={getEnv()} />
+        </mesh>
+      </group>
+      {/* light railings */}
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * (w / 2 - 0.5), 1.15, 0]}>
+          <boxGeometry args={[0.05, 0.05, d - 0.4]} />
+          {frameMat}
         </mesh>
       ))}
       <RigidBody type="fixed" colliders={false}>
-        {[
-          [-1, -1],
-          [1, -1],
-          [-1, 1],
-          [1, 1],
-        ].map(([sx, sz], i) => (
-          <CuboidCollider key={i} args={[0.1, 1.3, 0.1]} position={[sx * (w / 2 - 0.15), 1.3, sz * (d / 2 - 0.15)]} />
-        ))}
+        {postXs.flatMap((sx) =>
+          postZs.map((sz) => <CuboidCollider key={`${sx}_${sz}`} args={[0.1, 1.4, 0.1]} position={[sx, 1.4, sz]} />),
+        )}
       </RigidBody>
     </group>
   );

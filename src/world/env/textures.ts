@@ -49,9 +49,13 @@ export function makeBrickTexture(repeat: number): THREE.CanvasTexture {
     drawBand(y, 55, 256, 30, '#d98b70');
   }
   // small dot tiles on a grid
-  ctx.fillStyle = '#f0d9c8';
   for (let gy = 64; gy < size; gy += 128) {
-    for (let gx = 64; gx < size; gx += 128) ctx.fillRect(gx - 5, gy - 5, 10, 10);
+    for (let gx = 64; gx < size; gx += 128) {
+      ctx.fillStyle = '#9b4a3a';
+      ctx.fillRect(gx - 12, gy - 12, 24, 24);
+      ctx.fillStyle = '#f7e6d6';
+      ctx.fillRect(gx - 8, gy - 8, 16, 16);
+    }
   }
   return toTexture(c, repeat, repeat);
 }
@@ -148,6 +152,39 @@ export function makeCloudTexture(): THREE.CanvasTexture {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 256, 128);
   }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** Tiny equirect sky/ground gradient used as a reflection map so metals do not render black. */
+export function makeEnvTexture(): THREE.CanvasTexture {
+  const [c, ctx] = makeCanvas(128, 64);
+  const g = ctx.createLinearGradient(0, 0, 0, 64);
+  g.addColorStop(0, '#6aa6e0');
+  g.addColorStop(0.45, '#e8f1fa');
+  g.addColorStop(0.5, '#ffffff');
+  g.addColorStop(0.56, '#b98a72');
+  g.addColorStop(1, '#7a5a4a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.mapping = THREE.EquirectangularReflectionMapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** Vertical sky gradient for the backdrop dome. */
+export function makeSkyTexture(): THREE.CanvasTexture {
+  const [c, ctx] = makeCanvas(4, 256);
+  const g = ctx.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, '#2f6fc4');
+  g.addColorStop(0.35, '#5b9ce0');
+  g.addColorStop(0.5, '#9cc6ee');
+  g.addColorStop(0.55, '#b9d8f0');
+  g.addColorStop(1, '#b9d8f0');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 4, 256);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;

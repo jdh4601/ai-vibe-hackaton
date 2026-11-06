@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { KeyboardControls, Sky } from '@react-three/drei';
+import { KeyboardControls } from '@react-three/drei';
 import { Bloom, EffectComposer, SMAA } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
 import { Suspense, type ReactNode } from 'react';
@@ -50,8 +50,7 @@ export function GameCanvas({ children }: { children?: ReactNode }) {
         dpr={LOW_QUALITY ? 1 : [1, 1.75]}
         camera={{ fov: 55, near: 0.1, far: 1200, position: [0, 4, 56] }}
       >
-        <fog attach="fog" args={['#d4e6f2', 140, 700]} />
-        <Sky sunPosition={[60, 25, 30]} turbidity={2} rayleigh={2} mieCoefficient={0.003} mieDirectionalG={0.7} />
+        <fog attach="fog" args={['#b4d3ee', 180, 900]} />
         <hemisphereLight args={['#dfefff', '#c9a27a', 0.7]} />
         <directionalLight
           position={[40, 60, 20]}
