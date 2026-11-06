@@ -11,7 +11,8 @@ export type Vec3 = [number, number, number];
 export interface JacketSpec {
   bodyColor: string;
   sleeveColor: string;
-  backText: string; // "INU 컴퓨터공학부 27"
+  // Every jacket carries "INCHEON / NATIONAL / UNIVERSITY" on the back and "27" on the right sleeve.
+  departmentLine: string | null; // 4th back line, e.g. "컴퓨터공학부"; null on the starting jacket
 }
 
 export interface Department {

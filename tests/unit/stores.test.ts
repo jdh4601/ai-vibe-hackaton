@@ -22,7 +22,7 @@ describe('stores', () => {
   });
 
   it('setJacket_newSpec_reflected', () => {
-    const jacket = { bodyColor: '#111111', sleeveColor: '#39FF14', backText: 'INU 컴퓨터공학부 27' };
+    const jacket = { bodyColor: '#111111', sleeveColor: '#39FF14', departmentLine: '컴퓨터공학부' };
     usePlayerStore.getState().setJacket(jacket);
     expect(usePlayerStore.getState().jacket).toEqual(jacket);
   });

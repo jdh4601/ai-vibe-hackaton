@@ -18,14 +18,14 @@ describe('data integrity', () => {
     for (const d of DEPARTMENTS) {
       expect(d.jacket.bodyColor).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(d.jacket.sleeveColor).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(d.jacket.backText).toBe(`INU ${d.name} 27`);
+      expect(d.jacket.departmentLine).toBe(d.name);
     }
   });
   it('departments_questSix_matchJacketTable', () => {
     const j = (id: string) => DEPARTMENTS.find((d) => d.id === id)!.jacket;
     expect(j('ee')).toMatchObject({ bodyColor: '#0B6E4F', sleeveColor: '#F2C14E' });
     expect(j('design')).toMatchObject({ bodyColor: '#E94F37', sleeveColor: '#FFFFFF' });
-    expect(j('math')).toMatchObject({ bodyColor: '#3B5BA9', sleeveColor: '#F4F4F4' });
+    expect(j('math')).toMatchObject({ bodyColor: '#2B2D6E', sleeveColor: '#F4F4F4' });
     expect(j('neat')).toMatchObject({ bodyColor: '#8C1C13', sleeveColor: '#F2D0A4' });
     expect(j('cse')).toMatchObject({ bodyColor: '#111111', sleeveColor: '#39FF14' });
   });

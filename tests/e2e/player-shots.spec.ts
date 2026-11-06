@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { enterPlaza } from './helpers';
 
-const OUT = 'C:/Users/YM/Desktop/myPJ/coding-contest/.shots/phase1';
+const OUT = '.shots/e2e'; // gitignored, relative to the repo root
 
 test('player_views_screenshots', async ({ page }) => {
   test.setTimeout(90000);
@@ -8,7 +9,7 @@ test('player_views_screenshots', async ({ page }) => {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/?debug=1&mockNpcs=1');
-  await page.getByRole('button', { name: '문을 연다' }).click();
+  await enterPlaza(page);
   await expect(page.locator('canvas')).toBeVisible();
   await page.waitForTimeout(2500);
   await page.screenshot({ path: `${OUT}/B-hero-back.png` });
@@ -34,7 +35,7 @@ test('professor_chase_screenshot', async ({ page }) => {
   test.setTimeout(60000);
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/?debug=1');
-  await page.getByRole('button', { name: '문을 연다' }).click();
+  await enterPlaza(page);
   await page.waitForTimeout(2000);
   await page.evaluate(async () => {
     const e = await import('/src/stores/useEventStore.ts');

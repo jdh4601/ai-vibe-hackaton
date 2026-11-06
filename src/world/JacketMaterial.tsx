@@ -21,7 +21,7 @@ export interface JacketMaterials {
 const textureCache = new Map<string, CanvasTexture>();
 
 function cached(kind: string, spec: JacketSpec, draw: (s: JacketSpec) => CanvasTexture): CanvasTexture {
-  const key = `${kind}|${spec.bodyColor}|${spec.sleeveColor}|${spec.backText}`;
+  const key = `${kind}|${spec.bodyColor}|${spec.sleeveColor}|${spec.departmentLine ?? ''}`;
   let tex = textureCache.get(key);
   if (!tex) {
     tex = draw(spec);
@@ -32,9 +32,9 @@ function cached(kind: string, spec: JacketSpec, draw: (s: JacketSpec) => CanvasT
 
 // Rebuilds the materials whenever the jacket spec changes (e.g. the ceremony swaps it).
 export function useJacketMaterials(spec: JacketSpec): JacketMaterials {
-  const { bodyColor, sleeveColor, backText } = spec;
+  const { bodyColor, sleeveColor, departmentLine } = spec;
   return useMemo(() => {
-    const s: JacketSpec = { bodyColor, sleeveColor, backText };
+    const s: JacketSpec = { bodyColor, sleeveColor, departmentLine };
     const std = (map: CanvasTexture) => new MeshStandardMaterial({ map, roughness: 0.85, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.3 });
     return {
       front: std(cached('front', s, (x) => drawJacketFrontTexture(x))),
@@ -50,5 +50,5 @@ export function useJacketMaterials(spec: JacketSpec): JacketMaterials {
         polygonOffsetFactor: -2,
       }),
     };
-  }, [bodyColor, sleeveColor, backText]);
+  }, [bodyColor, sleeveColor, departmentLine]);
 }

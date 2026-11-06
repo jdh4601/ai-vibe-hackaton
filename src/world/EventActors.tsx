@@ -10,8 +10,8 @@ import { useGameStore } from '../stores/useGameStore';
 import { Character } from './Character';
 import { playerLive } from './playerLive';
 
-const PROFESSOR_JACKET: JacketSpec = { bodyColor: '#6b5a48', sleeveColor: '#efe6d8', backText: 'INU 교수 27' };
-const CLASSMATE_JACKET: JacketSpec = { bodyColor: '#3f6fb5', sleeveColor: '#ffffff', backText: 'INU 동기 27' };
+const PROFESSOR_JACKET: JacketSpec = { bodyColor: '#6b5a48', sleeveColor: '#efe6d8', departmentLine: null };
+const CLASSMATE_JACKET: JacketSpec = { bodyColor: '#3f6fb5', sleeveColor: '#ffffff', departmentLine: null };
 const CLASSMATE_SPEED = 4;
 const CLASSMATE_STOP_DIST = 1.6;
 const SNACK_REACH_RADIUS = 3;

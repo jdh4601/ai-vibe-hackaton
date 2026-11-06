@@ -7,13 +7,13 @@ const dept = (
   bodyColor: string,
   sleeveColor: string,
   symbol: string,
-): Department => ({ id, name, emoji, symbol, jacket: { bodyColor, sleeveColor, backText: `INU ${name} 27` } });
+): Department => ({ id, name, emoji, symbol, jacket: { bodyColor, sleeveColor, departmentLine: name } });
 
 // Quest departments use the colors from plan 1.10 (jacket table); the rest are invented.
 export const DEPARTMENTS: Department[] = [
   dept('ee', '전자공학부', '🔌', '#0B6E4F', '#F2C14E', 'chip'),
   dept('design', '디자인학부', '🎨', '#E94F37', '#FFFFFF', 'brush'),
-  dept('math', '수학과', '📐', '#3B5BA9', '#F4F4F4', 'protractor'),
+  dept('math', '수학과', '📐', '#2B2D6E', '#F4F4F4', 'protractor'),
   dept('neat', '동북아국제통상학부', '🇨🇳', '#8C1C13', '#F2D0A4', 'scroll'),
   dept('cse', '컴퓨터공학부', '💻', '#111111', '#39FF14', 'terminal'),
   dept('biz', '경영학부', '💼', '#1B365D', '#C9A227', 'chart'),

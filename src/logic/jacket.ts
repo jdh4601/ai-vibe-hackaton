@@ -2,8 +2,6 @@ import { CanvasTexture, SRGBColorSpace } from 'three';
 import { getDepartment } from '../data/departments';
 import type { DepartmentId, JacketSpec } from '../game/types';
 
-export const jacketBackText = (departmentName: string): string => `INU ${departmentName} 27`;
-
 function hashString(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
@@ -18,21 +16,14 @@ export function jacketForDepartment(id: DepartmentId): JacketSpec {
   return {
     bodyColor: `hsl(${hue}, 25%, 38%)`,
     sleeveColor: '#E8E8E8',
-    backText: jacketBackText(id),
+    departmentLine: id,
   };
 }
 
-// "INU 컴퓨터공학부 27" -> ["INU", "컴퓨터공학부", "27"]; any other shape stays on one line.
-export function splitBackText(text: string): string[] {
-  const parts = text.trim().split(/\s+/);
-  return parts.length === 3 ? parts : [text];
-}
-
-export const ARCHED_BACK_TEXT = 'INCHEON NATIONAL UNIVERSITY';
-
-// The hero jacket gets the arched varsity layout; every other text is printed centered.
-export function backTextLayout(text: string): 'arched' | 'centered' {
-  return text.trim().toUpperCase() === ARCHED_BACK_TEXT ? 'arched' : 'centered';
+// Back lettering shared by every jacket (plan 1.10 jacket table); departmentLine adds a 4th line.
+export function backLines(spec: JacketSpec): string[] {
+  const lines = ['INCHEON', 'NATIONAL', 'UNIVERSITY'];
+  return spec.departmentLine ? [...lines, spec.departmentLine] : lines;
 }
 
 // ---- textures (browser only: these need a 2D canvas) ----
@@ -84,11 +75,11 @@ function drawArched(ctx: CanvasRenderingContext2D, spec: JacketSpec): void {
   ctx.textBaseline = 'middle';
   // "INCHEON" along an arc across the shoulder blades
   const word = 'INCHEON';
-  const radius = 360;
+  const radius = 330;
   const cx = W / 2;
-  const cy = 190 + radius;
-  const span = 0.62; // total radians
-  ctx.font = `900 84px ${FONT_VARSITY}`;
+  const cy = 150 + radius;
+  const span = 1.12; // total radians: arc ≈ 370px, room for 7 letters at 66px without overlap
+  ctx.font = `900 66px ${FONT_VARSITY}`;
   for (let i = 0; i < word.length; i++) {
     const t = word.length === 1 ? 0 : -span / 2 + (span * i) / (word.length - 1);
     ctx.save();
@@ -98,8 +89,8 @@ function drawArched(ctx: CanvasRenderingContext2D, spec: JacketSpec): void {
     ctx.restore();
   }
   const lines: [string, number, number][] = [
-    ['NATIONAL', 300, 74],
-    ['UNIVERSITY', 376, 66],
+    ['NATIONAL', 262, 64],
+    ['UNIVERSITY', 332, 58],
   ];
   for (const [text, y, px] of lines) {
     fitText(ctx, text, (s) => `900 ${s}px ${FONT_VARSITY}`, px, W - 90);
@@ -107,18 +98,14 @@ function drawArched(ctx: CanvasRenderingContext2D, spec: JacketSpec): void {
   }
 }
 
-function drawCentered(ctx: CanvasRenderingContext2D, spec: JacketSpec): void {
+// Department name embroidered under the university lettering (ending jackets only).
+function drawDepartmentLine(ctx: CanvasRenderingContext2D, spec: JacketSpec): void {
+  if (!spec.departmentLine) return;
   ctx.fillStyle = spec.sleeveColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const lines = splitBackText(spec.backText);
-  const three = lines.length === 3;
-  const sizes = three ? [120, 70, 120] : [64];
-  const ys = three ? [170, 290, 410] : [H / 2 - 40];
-  lines.forEach((line, i) => {
-    fitText(ctx, line, (s) => `800 ${s}px ${FONT_SANS}`, sizes[i] ?? 64, W - 60);
-    ctx.fillText(line, W / 2, ys[i] ?? H / 2);
-  });
+  fitText(ctx, spec.departmentLine, (s) => `800 ${s}px ${FONT_SANS}`, 60, W - 70);
+  ctx.fillText(spec.departmentLine, W / 2, 440);
 }
 
 // Back of the jacket: body color, hem ribbing and the printed lettering.
@@ -128,8 +115,8 @@ export function drawJacketTexture(spec: JacketSpec): CanvasTexture {
     ctx.fillStyle = spec.bodyColor;
     ctx.fillRect(0, 0, W, H);
     drawRibbing(ctx, spec, 0, H - HEM_H, W, HEM_H);
-    if (backTextLayout(spec.backText) === 'arched') drawArched(ctx, spec);
-    else drawCentered(ctx, spec);
+    drawArched(ctx, spec);
+    drawDepartmentLine(ctx, spec);
   }
   return toTexture(canvas);
 }

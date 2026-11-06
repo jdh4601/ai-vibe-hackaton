@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { enterPlaza } from './helpers';
 import type { Page } from '@playwright/test';
 
 async function boot(page: Page) {
   await page.goto('/?debug=1&seed=1');
-  await page.getByRole('button', { name: '문을 연다' }).click();
+  await enterPlaza(page);
   await page.waitForFunction(() => window.__game !== undefined);
   await page.evaluate(() => window.__game!.skipOpening());
 }

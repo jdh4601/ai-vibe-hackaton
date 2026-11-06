@@ -1,4 +1,4 @@
-# 새내기 오디세이 — project map
+# 너의 학과는 — project map
 
 Spec: `plan.md` (Part 1 PRD, 2.4 contract, Part 3 track briefs, Part 4 tests). UI copy is Korean; code, comments and commits are English.
 

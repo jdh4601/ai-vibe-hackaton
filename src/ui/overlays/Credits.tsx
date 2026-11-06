@@ -9,7 +9,7 @@ export function Credits() {
   return (
     <div className="ov cr ui-root" data-testid="credits">
       <div className="cr-scroll">
-        <h1>새내기 오디세이</h1>
+        <h1>너의 학과는</h1>
         <div className="cr-sub">나의 학과를 찾아서</div>
         <div className="cr-depts">
           {DEPARTMENTS.map((d) => (
@@ -20,7 +20,7 @@ export function Credits() {
           ))}
         </div>
         <h2>Team</h2>
-        <p>기획 · 개발 · 디자인 — 새내기 오디세이 팀</p>
+        <p>기획 · 개발 · 디자인 — 너의 학과는 팀</p>
         <h2>Special Thanks</h2>
         <p>학과 체험을 도와준 모든 선배님들</p>
         <h2>&nbsp;</h2>

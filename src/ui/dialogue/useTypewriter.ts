@@ -14,19 +14,29 @@ export function useTypewriter(text: string, onChar?: () => void, msPerChar = TYP
   const onCharRef = useRef(onChar);
   onCharRef.current = onChar;
 
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stop = useCallback(() => {
+    if (timer.current !== null) clearInterval(timer.current);
+    timer.current = null;
+  }, []);
+
   useEffect(() => {
     setCount(0);
     if (!text) return;
     let n = 0;
-    const id = setInterval(() => {
+    timer.current = setInterval(() => {
       n += 1;
       setCount(n);
       if (text[n - 1] !== ' ') onCharRef.current?.();
-      if (n >= text.length) clearInterval(id);
+      if (n >= text.length) stop();
     }, msPerChar);
-    return () => clearInterval(id);
-  }, [text, msPerChar]);
+    return stop;
+  }, [text, msPerChar, stop]);
 
-  const complete = useCallback(() => setCount(text.length), [text]);
+  // stop the timer too, otherwise its next tick rewinds the text to where typing had reached
+  const complete = useCallback(() => {
+    stop();
+    setCount(text.length);
+  }, [text, stop]);
   return { shown: text.slice(0, count), done: count >= text.length, complete };
 }

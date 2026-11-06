@@ -7,9 +7,9 @@ import { useNotificationStore } from './useNotificationStore';
 // Matches assets/characters/hero/hero-*-v2.png (teammate-approved design):
 // royal blue body, white sleeves, blue/white striped ribbing, "27" on the wearer's right sleeve only.
 export const START_JACKET: JacketSpec = {
-  bodyColor: '#1E3FCF',
+  bodyColor: '#1E3FC0',
   sleeveColor: '#FFFFFF',
-  backText: 'INCHEON NATIONAL UNIVERSITY',
+  departmentLine: null,
 };
 
 export interface PlayerState {
