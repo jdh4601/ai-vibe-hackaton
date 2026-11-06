@@ -1,9 +1,14 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { KeyboardControls, Sky } from '@react-three/drei';
-import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
+import { Bloom, EffectComposer, SMAA } from '@react-three/postprocessing';
+import { Physics } from '@react-three/rapier';
 import { Suspense, type ReactNode } from 'react';
-import { MAP_HALF, MAP_SIZE } from '../game/config';
 import { useGameStore } from '../stores/useGameStore';
+import { Backdrop } from './Backdrop';
+import { Buildings } from './Buildings';
+import { Landmarks } from './Landmarks';
+import { Plaza } from './Plaza';
+import { Trees } from './Trees';
 
 export const KEYBOARD_MAP = [
   { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
@@ -14,29 +19,65 @@ export const KEYBOARD_MAP = [
   { name: 'interact', keys: ['KeyE'] },
 ];
 
-// Track A owns this file: lighting, sky, post-processing, and the world meshes (Plaza, Buildings, ...).
+const params = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search);
+const LOW_QUALITY = params.get('quality') === 'low';
+const TOP_CAM = params.get('cam') === 'top';
+
+// Debug/screenshot camera (?cam=top): overrides the follow camera each frame. Mounted after children.
+function TopCam() {
+  const camera = useThree((s) => s.camera);
+  useFrame(() => {
+    camera.position.set(0, 150, 38);
+    camera.lookAt(0, 0, -12);
+  });
+  return null;
+}
+
+// Track A owns this file: lighting, sky, post-processing, and the world meshes.
 // Actors from other tracks (Player, NPCs, ...) are passed in as children and render inside <Physics>.
 export function GameCanvas({ children }: { children?: ReactNode }) {
   const paused = useGameStore((s) => s.phase === 'minigame');
   return (
     <KeyboardControls map={KEYBOARD_MAP}>
-      <Canvas shadows camera={{ fov: 55, near: 0.1, far: 400, position: [0, 4, 56] }}>
-        <Sky sunPosition={[60, 40, -30]} />
-        <hemisphereLight args={['#dfefff', '#c9a27a', 0.6]} />
-        <directionalLight position={[40, 60, 20]} intensity={1.6} color="#fff1d6" castShadow />
+      <Canvas
+        shadows={!LOW_QUALITY}
+        dpr={LOW_QUALITY ? 1 : [1, 1.75]}
+        camera={{ fov: 55, near: 0.1, far: 1200, position: [0, 4, 56] }}
+      >
+        <fog attach="fog" args={['#d4e6f2', 140, 700]} />
+        <Sky sunPosition={[60, 40, -30]} turbidity={4} rayleigh={1.2} />
+        <hemisphereLight args={['#dfefff', '#c9a27a', 0.7]} />
+        <directionalLight
+          position={[40, 60, 20]}
+          intensity={2.2}
+          color="#fff1d6"
+          castShadow={!LOW_QUALITY}
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-left={-60}
+          shadow-camera-right={60}
+          shadow-camera-top={60}
+          shadow-camera-bottom={-60}
+          shadow-camera-near={1}
+          shadow-camera-far={200}
+          shadow-bias={-0.0004}
+        />
         <Suspense fallback={null}>
           <Physics paused={paused}>
-            {/* Phase 0 spike ground; track A replaces with <Plaza /> and friends */}
-            <RigidBody type="fixed" colliders={false}>
-              <CuboidCollider args={[MAP_HALF, 0.5, MAP_HALF]} position={[0, -0.5, 0]} />
-              <mesh rotation-x={-Math.PI / 2} receiveShadow>
-                <planeGeometry args={[MAP_SIZE, MAP_SIZE]} />
-                <meshStandardMaterial color="#b5523b" />
-              </mesh>
-            </RigidBody>
+            <Plaza />
+            <Buildings />
+            <Landmarks />
+            <Trees />
             {children}
           </Physics>
+          <Backdrop />
         </Suspense>
+        {!LOW_QUALITY && (
+          <EffectComposer multisampling={0}>
+            <Bloom intensity={0.3} luminanceThreshold={0.9} mipmapBlur />
+            <SMAA />
+          </EffectComposer>
+        )}
+        {TOP_CAM && <TopCam />}
       </Canvas>
     </KeyboardControls>
   );
